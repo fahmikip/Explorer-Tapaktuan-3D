@@ -158,4 +158,24 @@ See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 
 ---
 
+## 11. Amendments
+
+### Phase 2
+
+- **STATEMENT of position**: the visitor experience is the destination; the
+  development scene is not representative of Tapaktuan. Every development-phase
+  visual ("DEV") is placeholder geometry. Development visuals are never
+  presented as, confused with, or substituted for, the real-world location;
+  all description and guidance copy ("PROD") and all guest-facing visuals and
+  mechanics are delivered under the REQUIREMENTS-DOC-AWARE AND PROD-COPY-ONLY
+  rules and verified data rules.
+- **Phase 2 scope**: World Foundation + Player Controller only (ground, world
+  bounds, environment, third-person camera, player controller, input).
+  Deep-click world interaction, landmarks, points of interest, and all future
+  tourism systems are explicitly out of scope for Phase 2.
+- **Phase 2 record**: Completed — see [CHANGELOG.md](./CHANGELOG.md) for the
+  implemented modules and validation results.
+
+---
+
 _This document is part of the project source of truth._

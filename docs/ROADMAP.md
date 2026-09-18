@@ -23,6 +23,8 @@
 ## Phase 2 — Player
 
 - Character, movement, camera, collision, interaction, mobile controls.
+- **Status: Complete** (foundation: player controller, third-person camera,
+  simple ground/world, input architecture; world interaction deferred to later).
 
 ## Phase 3 — World Prototype
 

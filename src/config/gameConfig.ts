@@ -1,3 +1,5 @@
+import type { PlayerConfig } from "../player/PlayerConfig";
+
 /**
  * Centralized application configuration.
  * Values here should be adjusted from this file, not scattered through the codebase.
@@ -13,55 +15,85 @@ export interface RendererConfig {
   toneMappingExposure: number;
 }
 
+export interface ThirdPersonCameraConfig {
+  distance: number;
+  height: number;
+  lookAtHeight: number;
+  smoothness: number;
+  orbitEnabled: boolean;
+  orbitSensitivity: number;
+  defaultYaw: number;
+  minPitch: number;
+  maxPitch: number;
+}
+
 export interface CameraConfig {
   fov: number;
   near: number;
   far: number;
-  position: readonly [number, number, number];
-  lookAt: readonly [number, number, number];
+  thirdPerson: ThirdPersonCameraConfig;
 }
 
-export interface DevelopmentSceneConfig {
-  groundSize: number;
-  gridEnabled: boolean;
-  gridSize: number;
-  gridDivisions: number;
-  animateTestObject: boolean;
-  fog: {
-    enabled: boolean;
-    near: number;
-    far: number;
-  };
-  colors: {
-    background: string;
-    fog: string;
+export interface WorldBoundsConfig {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface WorldGroundConfig {
+  color: string;
+  roughness: number;
+  metalness: number;
+}
+
+export interface WorldFogConfig {
+  enabled: boolean;
+  color: string;
+  near: number;
+  far: number;
+}
+
+export interface WorldLightsConfig {
+  hemisphere: {
+    sky: string;
     ground: string;
-    sphere: string;
-    box: string;
-    torus: string;
-    gridCenter: string;
-    gridLine: string;
+    intensity: number;
   };
-  lights: {
-    hemisphere: {
-      sky: string;
-      ground: string;
-      intensity: number;
-    };
-    directional: {
-      color: string;
-      intensity: number;
-      position: readonly [number, number, number];
-      castShadow: boolean;
-      shadowMapSize: number;
-      shadowBounds: number;
-    };
+  directional: {
+    color: string;
+    intensity: number;
+    position: readonly [number, number, number];
+    castShadow: boolean;
+    shadowMapSize: number;
+    shadowBounds: number;
   };
+}
+
+export interface WorldGridConfig {
+  enabled: boolean;
+  colorCenter: string;
+  colorLine: string;
+  divisions: number;
+}
+
+export interface WorldConfig {
+  width: number;
+  depth: number;
+  groundHeight: number;
+  bounds: WorldBoundsConfig;
+  background: string;
+  fog: WorldFogConfig;
+  ground: WorldGroundConfig;
+  lights: WorldLightsConfig;
+  grid: WorldGridConfig;
 }
 
 export interface DebugConfig {
   enabled: boolean;
   fpsSmoothingFactor: number;
+  showGrid: boolean;
+  showBounds: boolean;
 }
 
 export interface GameConfig {
@@ -71,7 +103,8 @@ export interface GameConfig {
   maxDeltaTimeSeconds: number;
   renderer: RendererConfig;
   camera: CameraConfig;
-  developmentScene: DevelopmentSceneConfig;
+  world: WorldConfig;
+  player: PlayerConfig;
   debug: DebugConfig;
 }
 
@@ -95,50 +128,81 @@ export const gameConfig: GameConfig = {
     fov: 55,
     near: 0.1,
     far: 1000,
-    position: [0, 4.2, 9],
-    lookAt: [0, 0.6, 0],
+    thirdPerson: {
+      distance: 6.5,
+      height: 2.2,
+      lookAtHeight: 1.3,
+      smoothness: 6,
+      orbitEnabled: true,
+      orbitSensitivity: 0.004,
+      defaultYaw: Math.PI,
+      minPitch: -0.15,
+      maxPitch: 1.15,
+    },
   },
 
-  developmentScene: {
-    groundSize: 30,
-    gridEnabled: true,
-    gridSize: 30,
-    gridDivisions: 30,
-    animateTestObject: true,
+  world: {
+    width: 80,
+    depth: 80,
+    groundHeight: 0,
+    bounds: {
+      minX: -38,
+      maxX: 38,
+      minZ: -38,
+      maxZ: 38,
+    },
+    background: "#a7c6dd",
     fog: {
       enabled: true,
-      near: 24,
-      far: 80,
+      color: "#cfe0ea",
+      near: 55,
+      far: 180,
     },
-    colors: {
-      background: "#bfd4e4",
-      fog: "#bfd4e4",
-      ground: "#b8b495",
-      sphere: "#d08a4e",
-      box: "#4e7a8f",
-      torus: "#c9d4d8",
-      gridCenter: "#7f96a0",
-      gridLine: "#d7dfd8",
+    ground: {
+      color: "#b6b79e",
+      roughness: 1,
+      metalness: 0,
     },
     lights: {
       hemisphere: {
         sky: "#ffffff",
-        ground: "#9db8a6",
-        intensity: 0.65,
+        ground: "#8fae9c",
+        intensity: 0.75,
       },
       directional: {
         color: "#fff1d6",
-        intensity: 2.2,
-        position: [6, 12, 9],
+        intensity: 2.4,
+        position: [10, 16, 12],
         castShadow: true,
         shadowMapSize: 1024,
-        shadowBounds: 24,
+        shadowBounds: 32,
       },
     },
+    grid: {
+      enabled: true,
+      colorCenter: "#7f96a0",
+      colorLine: "#d7dfd8",
+      divisions: 40,
+    },
+  },
+
+  player: {
+    capsuleRadius: 0.4,
+    capsuleLength: 0.9,
+    moveSpeed: 5.2,
+    sprintMultiplier: 1.55,
+    acceleration: 14,
+    deceleration: 12,
+    rotationSpeed: 12,
+    gravity: 24,
+    jumpForce: 8.6,
+    spawnPosition: [0, 0, 6],
   },
 
   debug: {
     enabled: true,
     fpsSmoothingFactor: 0.1,
+    showGrid: true,
+    showBounds: false,
   },
 };

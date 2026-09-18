@@ -142,7 +142,8 @@ CONTINUE EXPLORING
 
 - Phase 0 — Project Foundation: **Complete**
 - Phase 1 — Three.js Foundation: **Complete**
-- Phase 2 — Pending (explicit authorization required)
+- Phase 2 — World Foundation + Player Controller: **Complete**
+- Phase 3 — Pending (explicit authorization required)
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 

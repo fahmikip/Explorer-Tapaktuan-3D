@@ -7,10 +7,10 @@ import { AssetManager } from "./AssetManager";
 import { CameraManager } from "../camera/CameraManager";
 import { InputManager } from "../input/InputManager";
 import { DebugUI } from "../ui/DebugUI";
-import {
-  createDevelopmentScene,
-  type DevelopmentSceneHandles,
-} from "../world/DevelopmentScene";
+import { WorldManager } from "../world/WorldManager";
+import { Player } from "../player/Player";
+import { PlayerController } from "../player/PlayerController";
+import type { PlayerState } from "../player/PlayerState";
 import type { DebugSnapshot, Disposable, LifecyclePhase, Size } from "./types";
 
 export class GameInitializationError extends Error {
@@ -28,13 +28,24 @@ export class Game implements Disposable {
   private readonly config: GameConfig;
   private readonly eventBus = new EventBus();
   private readonly clock = new THREE.Clock();
+  private readonly playerState: PlayerState = {
+    position: { x: 0, y: 0, z: 0 },
+    velocity: { x: 0, y: 0, z: 0 },
+    grounded: true,
+    isMoving: false,
+    isSprinting: false,
+    yaw: 0,
+  };
+  private readonly extras: Record<string, string> = {};
 
   private renderer!: Renderer;
   private sceneManager!: SceneManager;
   private cameraManager!: CameraManager;
   private assetManager!: AssetManager;
   private inputManager!: InputManager;
-  private devScene: DevelopmentSceneHandles | null = null;
+  private world!: WorldManager;
+  private player!: Player;
+  private controller!: PlayerController;
   private debugUI: DebugUI | null = null;
   private resizeObserver: ResizeObserver | null = null;
 
@@ -59,16 +70,20 @@ export class Game implements Disposable {
     return this.eventBus;
   }
 
-  get rendererInstance(): Renderer | null {
-    return this.renderer ?? null;
-  }
-
   get activeScene(): THREE.Scene | null {
     return this.sceneManager?.activeScene ?? null;
   }
 
   get activeCamera(): THREE.PerspectiveCamera | null {
     return this.cameraManager?.activeCamera ?? null;
+  }
+
+  get worldRoot(): THREE.Group | null {
+    return this.world?.root ?? null;
+  }
+
+  get playerTransform(): THREE.Group | null {
+    return this.player?.group ?? null;
   }
 
   get assets(): AssetManager | null {
@@ -99,13 +114,34 @@ export class Game implements Disposable {
     this.canvas = canvas;
     this.renderer = new Renderer(this.config.renderer, canvas);
     this.sceneManager = new SceneManager();
-    this.cameraManager = new CameraManager(this.config.camera);
+    this.cameraManager = new CameraManager(this.config.camera, canvas);
     this.assetManager = new AssetManager();
     this.inputManager = new InputManager();
-    this.devScene = createDevelopmentScene(
+
+    this.world = new WorldManager(
       this.sceneManager.activeScene,
-      this.config.developmentScene,
+      this.config.world,
+      {
+        showGrid: this.config.debug.showGrid,
+        showBounds: this.config.debug.showBounds,
+      },
     );
+
+    this.player = new Player(this.config.player);
+    this.world.add(this.player.group);
+    this.world.bounds.clampPosition(this.player.position);
+
+    this.controller = new PlayerController(
+      this.player,
+      this.cameraManager.activeCamera,
+      this.world.bounds,
+      {
+        groundHeight: this.config.world.groundHeight,
+        onJump: () => this.eventBus.emit("player:jumped", undefined),
+      },
+    );
+
+    this.cameraManager.setTarget(this.player.group);
 
     const uiRoot = document.getElementById(this.config.uiRootId);
     if (this.config.debug.enabled && uiRoot) {
@@ -147,9 +183,13 @@ export class Game implements Disposable {
   }
 
   update(deltaTime: number): void {
-    this.devScene?.update(deltaTime);
+    const input = this.inputManager.getState();
+    this.controller.update(deltaTime, input);
+    this.world.update(deltaTime);
+    this.cameraManager.update(deltaTime);
+
     if (this.debugUI) {
-      this.debugUI.update(this.buildSnapshot(deltaTime));
+      this.debugUI.update(this.buildSnapshot(deltaTime), this.buildExtras());
     }
   }
 
@@ -182,9 +222,12 @@ export class Game implements Disposable {
     this.resizeObserver = null;
 
     this.inputManager.dispose();
+    this.controller.dispose();
+    this.player.dispose();
+    this.cameraManager.dispose();
+    this.world.dispose();
     this.debugUI?.dispose();
     this.debugUI = null;
-    this.devScene = null;
 
     this.sceneManager.dispose();
     this.renderer.dispose();
@@ -224,6 +267,25 @@ export class Game implements Disposable {
       drawCalls: this.renderer.getDrawCallCount(),
       triangles: this.renderer.getTriangleCount(),
     };
+  }
+
+  private buildExtras(): Record<string, string> {
+    this.player.snapshot(this.playerState);
+    const state = this.playerState;
+
+    this.extras["player pos"] =
+      `${state.position.x.toFixed(1)}, ${state.position.y.toFixed(1)}, ${state.position.z.toFixed(1)}`;
+    this.extras["velocity"] =
+      `h ${Math.hypot(state.velocity.x, state.velocity.z).toFixed(1)} v ${state.velocity.y.toFixed(1)}`;
+    this.extras["grounded"] = state.grounded ? "yes" : "no";
+    this.extras["movement"] = state.isSprinting
+      ? "sprinting"
+      : state.isMoving
+        ? "moving"
+        : "idle";
+    this.extras["facing"] = `${Math.round((state.yaw * 180) / Math.PI)}°`;
+
+    return this.extras;
   }
 
   private observeResize(container: HTMLElement): void {

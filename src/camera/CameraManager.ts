@@ -1,28 +1,36 @@
 import * as THREE from "three";
 import type { CameraConfig } from "../config/gameConfig";
 import type { Disposable } from "../core/types";
+import { ThirdPersonCamera } from "./ThirdPersonCamera";
 
 /**
- * Owns the main PerspectiveCamera.
- * Supports configurable FOV/near/far, aspect updates on resize,
- * and will later expose a target to follow the player.
+ * Owns the main PerspectiveCamera and the third-person follow behavior.
+ * Exposes aspect updates for resize handling.
  */
 export class CameraManager implements Disposable {
   private readonly camera: THREE.PerspectiveCamera;
+  private readonly thirdPerson: ThirdPersonCamera;
 
-  constructor(config: CameraConfig) {
+  constructor(config: CameraConfig, canvas: HTMLCanvasElement) {
     this.camera = new THREE.PerspectiveCamera(
       config.fov,
       1,
       config.near,
       config.far,
     );
-    this.camera.position.set(...config.position);
-    this.camera.lookAt(new THREE.Vector3(...config.lookAt));
+    this.thirdPerson = new ThirdPersonCamera(this.camera, config.thirdPerson, canvas);
   }
 
   get activeCamera(): THREE.PerspectiveCamera {
     return this.camera;
+  }
+
+  setTarget(target: THREE.Object3D): void {
+    this.thirdPerson.setTarget(target);
+  }
+
+  update(deltaTime: number): void {
+    this.thirdPerson.update(deltaTime);
   }
 
   updateAspect(width: number, height: number): void {
@@ -32,6 +40,6 @@ export class CameraManager implements Disposable {
   }
 
   dispose(): void {
-    // No GPU resources owned by the camera; nothing to free yet.
+    this.thirdPerson.dispose();
   }
 }

@@ -1,38 +1,28 @@
 import type { Disposable } from "../core/types";
+import type { InputState } from "./InputState";
+import { KeyboardInput } from "./KeyboardInput";
 
 /**
- * Minimal input boundary for future systems.
- *
- * Phase 1 only tracks keyboard state. Mouse, touch, joystick and camera
- * controls arrive with the player phase. No gameplay controls are processed.
+ * Input facade. Aggregates input sources into a single InputState read.
+ * Future sources (TouchInput, GamepadInput, virtual joystick) plug in here
+ * without changing PlayerController.
  */
 export class InputManager implements Disposable {
-  private readonly keys = new Set<string>();
-
-  private readonly handleKeyDown = (event: KeyboardEvent): void => {
-    this.keys.add(event.code);
-  };
-
-  private readonly handleKeyUp = (event: KeyboardEvent): void => {
-    this.keys.delete(event.code);
-  };
+  private readonly keyboard: KeyboardInput;
 
   constructor() {
-    window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("keyup", this.handleKeyUp);
+    this.keyboard = new KeyboardInput();
+  }
+
+  getState(): InputState {
+    return this.keyboard.read();
   }
 
   isKeyDown(code: string): boolean {
-    return this.keys.has(code);
-  }
-
-  get pressedKeys(): ReadonlySet<string> {
-    return this.keys;
+    return this.keyboard.isKeyDown(code);
   }
 
   dispose(): void {
-    window.removeEventListener("keydown", this.handleKeyDown);
-    window.removeEventListener("keyup", this.handleKeyUp);
-    this.keys.clear();
+    this.keyboard.dispose();
   }
 }

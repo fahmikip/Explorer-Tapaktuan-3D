@@ -1,6 +1,18 @@
 import type { DebugConfig } from "../config/gameConfig";
 import type { DebugSnapshot, Disposable } from "../core/types";
 
+const ENGINE_ROWS = [
+  "status",
+  "fps",
+  "delta",
+  "resolution",
+  "pixel ratio",
+  "draw calls",
+  "triangles",
+  "frame",
+  "elapsed",
+] as const;
+
 /**
  * Lightweight development diagnostics overlay.
  * Development-oriented only; disabled entirely via gameConfig.debug.enabled.
@@ -23,38 +35,17 @@ export class DebugUI implements Disposable {
     title.textContent = "Explore Tapaktuan 3D";
     this.element.appendChild(title);
 
-    for (const key of [
-      "status",
-      "fps",
-      "delta",
-      "resolution",
-      "pixel ratio",
-      "draw calls",
-      "triangles",
-      "frame",
-      "elapsed",
-    ]) {
-      const row = document.createElement("div");
-      row.className = "debug-row";
-
-      const label = document.createElement("span");
-      label.className = "debug-label";
-      label.textContent = key;
-
-      const value = document.createElement("span");
-      value.className = "debug-value";
-      value.textContent = "—";
-
-      row.appendChild(label);
-      row.appendChild(value);
-      this.element.appendChild(row);
-      this.rows.set(key, value);
+    for (const key of ENGINE_ROWS) {
+      this.appendRow(key);
     }
 
     container.appendChild(this.element);
   }
 
-  update(snapshot: DebugSnapshot): void {
+  update(
+    snapshot: DebugSnapshot,
+    extras?: Readonly<Record<string, string>>,
+  ): void {
     this.frameCount += 1;
 
     const instantFps = snapshot.deltaTime > 0 ? 1 / snapshot.deltaTime : 0;
@@ -76,11 +67,40 @@ export class DebugUI implements Disposable {
     this.set("triangles", `${snapshot.triangles}`);
     this.set("frame", `${this.frameCount}`);
     this.set("elapsed", `${snapshot.elapsedSeconds.toFixed(1)} s`);
+
+    if (extras) {
+      for (const [key, value] of Object.entries(extras)) {
+        this.set(key, value);
+      }
+    }
+  }
+
+  private appendRow(key: string): void {
+    const row = document.createElement("div");
+    row.className = "debug-row";
+
+    const label = document.createElement("span");
+    label.className = "debug-label";
+    label.textContent = key;
+
+    const value = document.createElement("span");
+    value.className = "debug-value";
+    value.textContent = "—";
+
+    row.appendChild(label);
+    row.appendChild(value);
+    this.element.appendChild(row);
+    this.rows.set(key, value);
   }
 
   private set(key: string, value: string): void {
     const cell = this.rows.get(key);
-    if (cell) cell.textContent = value;
+    if (cell) {
+      cell.textContent = value;
+      return;
+    }
+    this.appendRow(key);
+    this.rows.get(key)!.textContent = value;
   }
 
   dispose(): void {

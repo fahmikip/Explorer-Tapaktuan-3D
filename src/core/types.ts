@@ -37,5 +37,6 @@ export interface GameEventMap {
   "game.started": void;
   "game.stopped": void;
   "game.disposed": void;
+  "player:jumped": void;
   resize: Size;
 }

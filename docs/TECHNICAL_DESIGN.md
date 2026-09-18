@@ -39,22 +39,25 @@ SaveManager      Versioned persistence (localStorage)
 ### 2.2 Player
 
 ```text
-PlayerController   Composition root for the player
-PlayerMovement     WASD / joystick locomotion, sprint, jump
-PlayerInput        Maps raw input to movement intent
-PlayerInteraction  Raycast interaction with interactables
+Player            Entity: transform group, placeholder capsule, movement state
+PlayerController  Reads InputState → camera-relative direction, accel/decel,
+                  rotation, gravity, jump, ground collision, world clamping
+PlayerConfig      Tunable movement/capsule parameters (values in gameConfig)
+PlayerState       Read-only gameplay snapshot for debug/telemetry
+
+(later phases)
+PlayerInteraction  Raycast interaction with interactables  (Phase 4+)
 PlayerAnimation    Animation state mapping (per approved assets)
 ```
 
 ### 2.3 World
 
 ```text
-WorldManager       Zone loading and lifecycle
-Terrain            Ground mesh/height data
-Environment        Decorative layer (filler vegetation, props)
-Buildings          Structure placement (data-driven)
-Vegetation         Clusters with instancing where valuable
-Ocean              Water surface (per approved art direction)
+WorldManager       World container (worldRoot), composition, dispose
+Ground             Flat placeholder collision surface (replaceable per phase)
+WorldBounds        Rectangular play area clamp (central config)
+Environment        Background, fog, hemisphere + directional lighting
+Terrain/...        Later-phase systems (world prototype builds on this root)
 ```
 
 ### 2.4 Gameplay
@@ -66,7 +69,15 @@ AchievementManager Achievement evaluation (generic rules)
 DialogueManager    Dialogue flow and state
 ```
 
-### 2.5 Environment
+### 2.5 Camera
+
+```text
+CameraManager      Owns the PerspectiveCamera, aspect updates
+ThirdPersonCamera  Smooth follow + pointer/touch orbit (distance, height,
+                   lookAtHeight, smoothness — centralized config)
+```
+
+### 2.6 Environment
 
 ```text
 WeatherManager     Modular weather states, no conditional spread
@@ -74,7 +85,7 @@ TimeManager        Day/night timeline (independent of gameplay)
 AudioManager       Categories, volume control, graceful fallback
 ```
 
-### 2.6 UI
+### 2.7 UI
 
 ```text
 HUD, DialogUI, MapUI, DiscoveryUI, QuestUI, AchievementUI, PauseMenu
@@ -89,10 +100,26 @@ UI uses centralized design tokens (CSS custom properties) only.
 ```text
 src/
 ├── core/
-├── player/
+├── config/            centralized configuration (gameConfig.ts)
 ├── camera/
+│   ├── CameraManager.ts
+│   └── ThirdPersonCamera.ts
 ├── world/
+│   ├── WorldManager.ts
+│   ├── Ground.ts
+│   ├── Environment.ts
+│   └── WorldBounds.ts
+├── player/
+│   ├── Player.ts
+│   ├── PlayerController.ts
+│   ├── PlayerConfig.ts
+│   └── PlayerState.ts
+├── input/
+│   ├── InputManager.ts
+│   ├── KeyboardInput.ts
+│   └── InputState.ts
 ├── interaction/
+├── ui/
 ├── npc/
 ├── dialogue/
 ├── quest/
@@ -100,7 +127,6 @@ src/
 ├── achievement/
 ├── weather/
 ├── audio/
-├── ui/
 └── main.ts
 
 data/

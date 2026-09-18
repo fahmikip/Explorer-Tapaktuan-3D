@@ -141,7 +141,8 @@ CONTINUE EXPLORING
 ## 9. Status
 
 - Phase 0 — Project Foundation: **Complete**
-- Phase 1 — Pending (explicit authorization required)
+- Phase 1 — Three.js Foundation: **Complete**
+- Phase 2 — Pending (explicit authorization required)
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 

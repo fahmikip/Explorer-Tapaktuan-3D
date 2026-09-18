@@ -6,7 +6,7 @@ An interactive, browser-based 3D tourism experience inspired by Tapaktuan,
 Aceh Selatan. Explore a stylized tropical coastal world, discover verified
 landmarks, interact with the environment, and learn through guided exploration.
 
-> **Status:** Phase 0 (Project Foundation) — **Complete**.
+> **Status:** Phase 1 (Three.js Foundation) — **Complete**.
 
 ---
 
@@ -34,7 +34,7 @@ Requires Node.js 20.19+ / 22.12+.
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 0 | Project Foundation | ✅ Complete |
-| 1 | Three.js Foundation | Pending |
+| 1 | Three.js Foundation | ✅ Complete |
 | 2 | Player | Pending |
 | 3 | World Prototype | Pending |
 | 4 | Landmark & Discovery | Pending |
@@ -60,7 +60,10 @@ tests/  Tests (added when testable logic appears)
 
 This project follows a strict governance model. Real-world information about
 Tapaktuan must be **verified and statused** before use; the AI never invents
-facts. See:
+facts. The development scene currently shown is purely technical test
+geometry — no real Tapaktuan data, landmarks, or buildings are represented yet.
+
+See:
 
 - [PROJECT.md](./docs/PROJECT.md)
 - [GAME_DESIGN.md](./docs/GAME_DESIGN.md)

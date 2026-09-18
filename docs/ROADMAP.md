@@ -18,6 +18,7 @@
 - Vite + TypeScript + Three.js wired.
 - Renderer, scene, camera, lighting, game loop, responsive canvas.
 - Load order and dir structure established.
+- **Status: Complete**
 
 ## Phase 2 — Player
 

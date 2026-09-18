@@ -1,0 +1,93 @@
+:root {
+  --color-bg: #0e1520;
+  --color-debug-bg: rgba(12, 18, 24, 0.72);
+  --color-debug-text: #cfe3e8;
+  --color-debug-accent: #ffd68a;
+  --z-ui-root: 100;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-bg);
+  font-family: var(--font-sans);
+  color: #ffffff;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#ui-root {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-ui-root);
+  pointer-events: none;
+}
+
+#ui-root > * {
+  pointer-events: auto;
+}
+
+#debug-ui {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  min-width: 230px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-debug-bg);
+  color: var(--color-debug-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  backdrop-filter: blur(4px);
+}
+
+#debug-ui .debug-title {
+  margin-bottom: 6px;
+  color: var(--color-debug-accent);
+  font-weight: 600;
+}
+
+#debug-ui .debug-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+#debug-ui .debug-label {
+  opacity: 0.75;
+}
+
+@media (max-width: 600px) {
+  #debug-ui {
+    font-size: 11px;
+    min-width: 0;
+  }
+}

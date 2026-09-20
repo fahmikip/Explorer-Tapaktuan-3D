@@ -144,7 +144,8 @@ CONTINUE EXPLORING
 - Phase 1 — Three.js Foundation: **Complete**
 - Phase 2 — World Foundation + Player Controller: **Complete**
 - Phase 3 — World Prototype (procedural coastal environment foundation): **Complete**
-- Phase 4 — Pending (explicit authorization required)
+- Phase 4 — Landmark & POI System: **Complete**
+- Phase 5 — Pending (explicit authorization required)
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 
@@ -192,6 +193,24 @@ See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
   scope for Phase 3.
 - **Phase 3 record**: Completed — see [CHANGELOG.md](./CHANGELOG.md) for the
   implemented modules, fixes and validation results.
+
+### Phase 4
+
+- **STATEMENT of position**: Phase 4 adds the landmark & POI **system**, not
+  landmark **content**. The only landmarks present are development test probes
+  (`isTestData: true`, `status: "draft"`, named "Uji …") used to validate the
+  pipeline. No real Tapaktuan facts, names, positions or descriptions were
+  used or invented; real approved landmark data can be added to
+  `/data/landmarks.json` and flows through the same pipeline unchanged.
+- **Phase 4 scope**: data model + non-throwing loader/validator, registry,
+  generic `Interactable` interaction layer (E-key, nearest-within-radius,
+  hint), discovery tracking with optional persistence, procedural placeholder
+  landmark visuals, info panel (desktop/mobile) and interaction hint UI,
+  GameEventMap + config additions, dev-only test landmarks and panel-open
+  input lock. XP/rewards for discovery, NPCs, dialogue, quests, achievements,
+  map/gallery and audio guides are explicitly out of scope for Phase 4.
+- **Phase 4 record**: Completed — see [CHANGELOG.md](./CHANGELOG.md) for the
+  implemented modules and validation results.
 
 ---
 

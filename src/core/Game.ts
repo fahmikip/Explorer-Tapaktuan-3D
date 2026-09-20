@@ -118,10 +118,15 @@ export class Game implements Disposable {
     this.assetManager = new AssetManager();
     this.inputManager = new InputManager();
 
+    const quality =
+      this.config.world.quality.levels[this.config.world.quality.default];
+    this.renderer.setPixelRatioCap(quality.pixelRatioCap);
+
     this.world = new WorldManager(
       this.sceneManager.activeScene,
       this.config.world,
       {
+        quality,
         showGrid: this.config.debug.showGrid,
         showBounds: this.config.debug.showBounds,
       },
@@ -130,13 +135,18 @@ export class Game implements Disposable {
     this.player = new Player(this.config.player);
     this.world.add(this.player.group);
     this.world.bounds.clampPosition(this.player.position);
+    this.player.position.y = this.world.collisionHeightAt(
+      this.player.position.x,
+      this.player.position.z,
+    );
 
     this.controller = new PlayerController(
       this.player,
       this.cameraManager.activeCamera,
       this.world.bounds,
       {
-        groundHeight: this.config.world.groundHeight,
+        groundHeightAt: (x: number, z: number) =>
+          this.world.collisionHeightAt(x, z),
         onJump: () => this.eventBus.emit("player:jumped", undefined),
       },
     );
@@ -284,6 +294,16 @@ export class Game implements Disposable {
         ? "moving"
         : "idle";
     this.extras["facing"] = `${Math.round((state.yaw * 180) / Math.PI)}°`;
+
+    this.extras["terrain h"] = this.world
+      .getHeightAt(state.position.x, state.position.z)
+      .toFixed(2);
+    this.extras["ocean h"] = `${this.world.oceanHeight.toFixed(2)}`;
+    this.extras["seed"] = `${this.world.seed}`;
+    this.extras["quality"] = this.config.world.quality.default;
+    this.extras["veg instances"] = `${this.world.vegetationCount}`;
+    this.extras["rocks"] = `${this.world.rockCount}`;
+    this.extras["paths"] = `${this.world.pathCount}`;
 
     return this.extras;
   }

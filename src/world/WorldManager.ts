@@ -1,11 +1,20 @@
 import * as THREE from "three";
-import type { WorldConfig } from "../config/gameConfig";
+import type {
+  QualitySettings,
+  WorldConfig,
+} from "../config/gameConfig";
 import type { Disposable } from "../core/types";
-import { Environment } from "./Environment";
-import { Ground } from "./Ground";
+import { AtmosphereSystem } from "./AtmosphereSystem";
+import { OceanSystem } from "./OceanSystem";
+import { PathSystem } from "./PathSystem";
+import { RockSystem } from "./RockSystem";
+import { TerrainSystem } from "./TerrainSystem";
+import { VegetationSystem } from "./VegetationSystem";
 import { WorldBounds } from "./WorldBounds";
+import { WorldDebugHelper } from "./WorldDebugHelper";
 
 export interface WorldManagerOptions {
+  quality: QualitySettings;
   showGrid: boolean;
   showBounds: boolean;
 }
@@ -13,55 +22,128 @@ export interface WorldManagerOptions {
 const WORLD_ROOT_NAME = "worldRoot";
 
 /**
- * Owns the world container and its placeholder systems: ground, environment,
- * play-area bounds, and optional development helpers (grid / bounds lines).
- * All world objects live under `root`.
+ * World orchestration layer. Owns the ordered environment systems and keeps
+ * them modular — subsystems hold their own geometry, placement and cleanup.
+ * WorldManager only wires them under a single worldRoot.
  */
 export class WorldManager implements Disposable {
   readonly root: THREE.Group;
   readonly bounds: WorldBounds;
+  readonly quality: QualitySettings;
+  readonly seed: number;
 
-  private readonly ground: Ground;
-  private readonly environment: Environment;
-  private readonly grid: THREE.GridHelper | null = null;
-  private readonly boundsLine: THREE.LineLoop | null = null;
-  private readonly boundsLineGeometry: THREE.BufferGeometry | null = null;
-  private readonly boundsLineMaterial: THREE.LineBasicMaterial | null = null;
+  private readonly terrain: TerrainSystem;
+  private readonly ocean: OceanSystem;
+  private readonly paths: PathSystem;
+  private readonly vegetation: VegetationSystem;
+  private readonly rocks: RockSystem;
+  private readonly atmosphere: AtmosphereSystem;
+  private readonly debug: WorldDebugHelper;
 
   constructor(
     scene: THREE.Scene,
     config: WorldConfig,
     options: WorldManagerOptions,
   ) {
+    this.quality = options.quality;
+    this.seed = config.seed;
     this.bounds = new WorldBounds(config.bounds);
-    this.ground = new Ground(config);
-    this.environment = new Environment(scene, config);
+
+    this.terrain = new TerrainSystem(
+      config.terrain,
+      config.seed,
+      config.width,
+      config.depth,
+      options.quality.terrainSegments,
+    );
+
+    this.ocean = new OceanSystem(
+      config.ocean,
+      options.quality.oceanSegments,
+    );
+
+    this.paths = new PathSystem(config.paths, this.terrain);
+
+    this.vegetation = new VegetationSystem(
+      config.vegetation,
+      this.terrain,
+      this.ocean,
+      this.paths,
+      this.bounds,
+      config.seed,
+      options.quality.vegetationMultiplier,
+    );
+
+    this.rocks = new RockSystem(
+      config.rocks,
+      this.terrain,
+      this.ocean,
+      this.paths,
+      this.bounds,
+      config.seed,
+      options.quality.rockMultiplier,
+    );
+
+    this.atmosphere = new AtmosphereSystem(scene, config.atmosphere, {
+      quality: options.quality,
+      bounds: this.bounds,
+    });
 
     this.root = new THREE.Group();
     this.root.name = WORLD_ROOT_NAME;
-    this.root.add(this.ground.mesh);
-
-    if (options.showGrid && config.grid.enabled) {
-      this.grid = new THREE.GridHelper(
-        Math.max(config.width, config.depth),
-        config.grid.divisions,
-        new THREE.Color(config.grid.colorCenter),
-        new THREE.Color(config.grid.colorLine),
-      );
-      this.grid.position.y = config.groundHeight + 0.01;
-      this.root.add(this.grid);
+    this.root.add(this.terrain.mesh);
+    this.root.add(this.ocean.mesh);
+    for (const mesh of this.vegetation.meshes) {
+      this.root.add(mesh);
     }
-
-    if (options.showBounds) {
-      const { boundsLine, geometry, material } =
-        this.createBoundsVisualization(config);
-      this.boundsLine = boundsLine;
-      this.boundsLineGeometry = geometry;
-      this.boundsLineMaterial = material;
-      this.root.add(boundsLine);
-    }
-
+    this.root.add(this.rocks.mesh);
     scene.add(this.root);
+
+    this.debug = new WorldDebugHelper(this.root, config.bounds, Math.max(config.width, config.depth), {
+      showGrid: options.showGrid,
+      showBounds: options.showBounds,
+      seaLevel: config.ocean.height,
+      grid: config.grid,
+    });
+  }
+
+  /**
+   * Raw terrain elevation. Use for world building (props, paths, systems).
+   */
+  getHeightAt(x: number, z: number): number {
+    return this.terrain.getHeightAt(x, z);
+  }
+
+  /**
+   * Surface height the player can stand on. Terrain, clamped at sea level so
+   * the player cannot sink or walk into open water beyond the shoreline.
+   */
+  collisionHeightAt(x: number, z: number): number {
+    return Math.max(this.terrain.getHeightAt(x, z), this.ocean.height);
+  }
+
+  getTerrainSlopeAt(x: number, z: number): number {
+    return this.terrain.getSlopeAt(x, z);
+  }
+
+  get vegetationCount(): number {
+    return this.vegetation.instanceCount;
+  }
+
+  get rockCount(): number {
+    return this.rocks.instanceCount;
+  }
+
+  get pathCount(): number {
+    return this.paths.pathCount;
+  }
+
+  get oceanHeight(): number {
+    return this.ocean.height;
+  }
+
+  byName(name: string): THREE.Object3D | null {
+    return this.root.getObjectByName(name) ?? null;
   }
 
   add(object: THREE.Object3D): void {
@@ -73,51 +155,23 @@ export class WorldManager implements Disposable {
   }
 
   update(deltaTime: number): void {
-    // Placeholder — world simulation arrives in later phases.
-    void deltaTime;
+    this.ocean.update(deltaTime);
+    this.paths.update(deltaTime);
+    this.vegetation.update(deltaTime);
+    this.rocks.update(deltaTime);
   }
 
   dispose(): void {
-    this.boundsLineMaterial?.dispose();
-    this.boundsLineGeometry?.dispose();
-    this.boundsLine?.removeFromParent();
-
-    this.grid?.geometry.dispose();
-
-    const gridMaterial = this.grid?.material;
-    if (gridMaterial) {
-      if (Array.isArray(gridMaterial)) {
-        for (const material of gridMaterial) material.dispose();
-      } else {
-        gridMaterial.dispose();
-      }
-    }
-    this.grid?.removeFromParent();
-
-    this.ground.dispose();
-    this.environment.dispose();
-    this.bounds.dispose();
+    this.debug.dispose();
     this.root.removeFromParent();
-  }
 
-  private createBoundsVisualization(
-    config: WorldConfig,
-  ): {
-    boundsLine: THREE.LineLoop;
-    geometry: THREE.BufferGeometry;
-    material: THREE.LineBasicMaterial;
-  } {
-    const y = config.groundHeight + 0.02;
-    const points = [
-      new THREE.Vector3(config.bounds.minX, y, config.bounds.minZ),
-      new THREE.Vector3(config.bounds.maxX, y, config.bounds.minZ),
-      new THREE.Vector3(config.bounds.maxX, y, config.bounds.maxZ),
-      new THREE.Vector3(config.bounds.minX, y, config.bounds.maxZ),
-    ];
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: "#ffb36b" });
-    const boundsLine = new THREE.LineLoop(geometry, material);
-    boundsLine.name = "worldBoundsVisualization";
-    return { boundsLine, geometry, material };
+    this.rocks.dispose();
+    this.vegetation.dispose();
+    this.paths.dispose();
+    this.ocean.dispose();
+    this.terrain.dispose();
+    this.atmosphere.dispose();
+
+    this.bounds.dispose();
   }
 }

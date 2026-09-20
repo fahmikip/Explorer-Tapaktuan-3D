@@ -5,7 +5,7 @@ import { Player } from "./Player";
 import { WorldBounds } from "../world/WorldBounds";
 
 export interface PlayerControllerOptions {
-  groundHeight: number;
+  groundHeightAt: (x: number, z: number) => number;
   onJump?: () => void;
 }
 
@@ -92,8 +92,9 @@ export class PlayerController implements Disposable {
     position.z += this.player.horizontalVelocity.z * deltaTime;
     position.y += this.player.verticalVelocity * deltaTime;
 
-    if (position.y <= this.options.groundHeight) {
-      position.y = this.options.groundHeight;
+    const groundY = this.options.groundHeightAt(position.x, position.z);
+    if (position.y <= groundY) {
+      position.y = groundY;
       this.player.verticalVelocity = 0;
       this.player.grounded = true;
     }

@@ -41,20 +41,119 @@ export interface WorldBoundsConfig {
   maxZ: number;
 }
 
-export interface WorldGroundConfig {
+export type QualityLevel = "low" | "medium" | "high";
+
+export interface QualitySettings {
+  terrainSegments: number;
+  oceanSegments: number;
+  vegetationMultiplier: number;
+  rockMultiplier: number;
+  shadowMapSize: number;
+  pixelRatioCap: number;
+}
+
+export interface QualityConfig {
+  default: QualityLevel;
+  levels: Record<QualityLevel, QualitySettings>;
+}
+
+export interface TerrainConfig {
+  maxHeight: number;
+  falloffStart: number;
+  falloffEnd: number;
+  noiseWavelength: number;
+  noiseAmplitude: number;
+  noiseOctaves: number;
+  beachHeight: number;
+  grassHeight: number;
+  hillHeight: number;
+  colors: {
+    sand: string;
+    grass: string;
+    hill: string;
+    rock: string;
+  };
+}
+
+export interface OceanConfig {
+  height: number;
+  size: number;
   color: string;
   roughness: number;
   metalness: number;
+  waveAmplitude: number;
+  waveFrequency: number;
+  waveSpeed: number;
 }
 
-export interface WorldFogConfig {
+export interface VegetationTypeConfig {
   enabled: boolean;
-  color: string;
-  near: number;
-  far: number;
+  density: number;
+  minHeight: number;
+  maxHeight: number;
+  slopeLimit: number;
+  pathClearance: number;
+  scaleMin: number;
+  scaleMax: number;
 }
 
-export interface WorldLightsConfig {
+export interface VegetationPaletteConfig {
+  trunk: string;
+  leaf: string;
+  bush: string;
+  grass: string;
+}
+
+export interface VegetationConfig {
+  enabled: boolean;
+  waterMargin: number;
+  palm: VegetationTypeConfig;
+  bush: VegetationTypeConfig;
+  grass: VegetationTypeConfig;
+  colors: VegetationPaletteConfig;
+}
+
+export interface RockConfig {
+  enabled: boolean;
+  density: number;
+  waterMargin: number;
+  slopeLimit: number;
+  pathClearance: number;
+  scaleMin: number;
+  scaleMax: number;
+  colors: readonly [string, string, string];
+}
+
+export interface PathDefinition {
+  id: string;
+  width: number;
+  color: string;
+  points: readonly (readonly [number, number])[];
+}
+
+export interface PathConfig {
+  enabled: boolean;
+  heightOffset: number;
+  step: number;
+  paths: readonly PathDefinition[];
+}
+
+export interface AtmosphereConfig {
+  skyEnabled: boolean;
+  sky: {
+    turbidity: number;
+    rayleigh: number;
+    mieCoefficient: number;
+    mieDirectionalG: number;
+    sunPosition: readonly [number, number, number];
+  };
+  background: string;
+  fog: {
+    enabled: boolean;
+    color: string;
+    near: number;
+    far: number;
+  };
   hemisphere: {
     sky: string;
     ground: string;
@@ -63,9 +162,6 @@ export interface WorldLightsConfig {
   directional: {
     color: string;
     intensity: number;
-    position: readonly [number, number, number];
-    castShadow: boolean;
-    shadowMapSize: number;
     shadowBounds: number;
   };
 }
@@ -80,13 +176,16 @@ export interface WorldGridConfig {
 export interface WorldConfig {
   width: number;
   depth: number;
-  groundHeight: number;
+  seed: number;
   bounds: WorldBoundsConfig;
-  background: string;
-  fog: WorldFogConfig;
-  ground: WorldGroundConfig;
-  lights: WorldLightsConfig;
+  terrain: TerrainConfig;
+  ocean: OceanConfig;
+  vegetation: VegetationConfig;
+  rocks: RockConfig;
+  paths: PathConfig;
+  atmosphere: AtmosphereConfig;
   grid: WorldGridConfig;
+  quality: QualityConfig;
 }
 
 export interface DebugConfig {
@@ -107,6 +206,33 @@ export interface GameConfig {
   player: PlayerConfig;
   debug: DebugConfig;
 }
+
+const QUALITY_LEVELS: Record<QualityLevel, QualitySettings> = {
+  low: {
+    terrainSegments: 48,
+    oceanSegments: 32,
+    vegetationMultiplier: 0.5,
+    rockMultiplier: 0.5,
+    shadowMapSize: 0,
+    pixelRatioCap: 1,
+  },
+  medium: {
+    terrainSegments: 72,
+    oceanSegments: 40,
+    vegetationMultiplier: 0.75,
+    rockMultiplier: 0.75,
+    shadowMapSize: 512,
+    pixelRatioCap: 1.5,
+  },
+  high: {
+    terrainSegments: 96,
+    oceanSegments: 48,
+    vegetationMultiplier: 1,
+    rockMultiplier: 1,
+    shadowMapSize: 1024,
+    pixelRatioCap: 2,
+  },
+};
 
 export const gameConfig: GameConfig = {
   canvasId: "game-canvas",
@@ -142,47 +268,188 @@ export const gameConfig: GameConfig = {
   },
 
   world: {
-    width: 80,
-    depth: 80,
-    groundHeight: 0,
+    width: 120,
+    depth: 120,
+    seed: 12345,
     bounds: {
       minX: -38,
       maxX: 38,
       minZ: -38,
       maxZ: 38,
     },
-    background: "#a7c6dd",
-    fog: {
+
+    terrain: {
+      maxHeight: 8,
+      falloffStart: 0.35,
+      falloffEnd: 0.7,
+      noiseWavelength: 24,
+      noiseAmplitude: 2,
+      noiseOctaves: 3,
+      beachHeight: 1.5,
+      grassHeight: 3.8,
+      hillHeight: 6,
+      colors: {
+        sand: "#e5d4a7",
+        grass: "#7fae6d",
+        hill: "#5f7a4a",
+        rock: "#8d8578",
+      },
+    },
+
+    ocean: {
+      height: 0,
+      size: 400,
+      color: "#2f7fa6",
+      roughness: 0.35,
+      metalness: 0.05,
+      waveAmplitude: 0.12,
+      waveFrequency: 0.5,
+      waveSpeed: 0.8,
+    },
+
+    vegetation: {
       enabled: true,
-      color: "#cfe0ea",
-      near: 55,
-      far: 180,
+      waterMargin: 0.5,
+      palm: {
+        enabled: true,
+        density: 0.008,
+        minHeight: 0.3,
+        maxHeight: 3,
+        slopeLimit: 0.3,
+        pathClearance: 1.5,
+        scaleMin: 0.85,
+        scaleMax: 1.3,
+      },
+      bush: {
+        enabled: true,
+        density: 0.02,
+        minHeight: 0.3,
+        maxHeight: 5,
+        slopeLimit: 0.5,
+        pathClearance: 1,
+        scaleMin: 0.7,
+        scaleMax: 1.4,
+      },
+      grass: {
+        enabled: true,
+        density: 0.06,
+        minHeight: 0.2,
+        maxHeight: 4.5,
+        slopeLimit: 1,
+        pathClearance: 1,
+        scaleMin: 0.8,
+        scaleMax: 1.5,
+      },
+      colors: {
+        trunk: "#9c8360",
+        leaf: "#3e8b46",
+        bush: "#4c8f55",
+        grass: "#8fc26a",
+      },
     },
-    ground: {
-      color: "#b6b79e",
-      roughness: 1,
-      metalness: 0,
+
+    rocks: {
+      enabled: true,
+      density: 0.006,
+      waterMargin: 0.3,
+      slopeLimit: 0.9,
+      pathClearance: 0.8,
+      scaleMin: 0.3,
+      scaleMax: 1.6,
+      colors: ["#a29c8f", "#87827a", "#6f6a63"],
     },
-    lights: {
+
+    paths: {
+      enabled: true,
+      heightOffset: 0.06,
+      step: 1,
+      paths: [
+        {
+          id: "coastal-walk",
+          width: 2.4,
+          color: "#cfb98b",
+          points: [
+            [26, -22],
+            [15, -30],
+            [0, -33],
+            [-15, -30],
+            [-28, -22],
+            [-32, -8],
+            [-28, 8],
+            [-18, 18],
+            [-5, 21],
+            [8, 22],
+            [20, 17],
+            [28, 8],
+            [31, -5],
+            [30, -16],
+          ],
+        },
+        {
+          id: "hill-trail",
+          width: 1.6,
+          color: "#bfa878",
+          points: [
+            [-22, -6],
+            [-16, -4],
+            [-8, -2],
+            [0, 2],
+            [6, 7],
+          ],
+        },
+        {
+          id: "beach-spine",
+          width: 2,
+          color: "#cfb98b",
+          points: [
+            [-30, 4],
+            [-14, 2],
+            [4, 1],
+            [20, -2],
+            [34, -8],
+          ],
+        },
+      ],
+    },
+
+    atmosphere: {
+      skyEnabled: true,
+      sky: {
+        turbidity: 8,
+        rayleigh: 2,
+        mieCoefficient: 0.005,
+        mieDirectionalG: 0.8,
+        sunPosition: [150, 60, 100],
+      },
+      background: "#a8c8e8",
+      fog: {
+        enabled: true,
+        color: "#c9dde8",
+        near: 80,
+        far: 260,
+      },
       hemisphere: {
-        sky: "#ffffff",
-        ground: "#8fae9c",
-        intensity: 0.75,
+        sky: "#cfe6ff",
+        ground: "#9aa880",
+        intensity: 0.8,
       },
       directional: {
-        color: "#fff1d6",
-        intensity: 2.4,
-        position: [10, 16, 12],
-        castShadow: true,
-        shadowMapSize: 1024,
-        shadowBounds: 32,
+        color: "#fff1e0",
+        intensity: 3.2,
+        shadowBounds: 46,
       },
     },
+
     grid: {
       enabled: true,
       colorCenter: "#7f96a0",
       colorLine: "#d7dfd8",
-      divisions: 40,
+      divisions: 60,
+    },
+
+    quality: {
+      default: "high",
+      levels: QUALITY_LEVELS,
     },
   },
 

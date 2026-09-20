@@ -19,8 +19,11 @@ function resolveToneMapping(mode: ToneMappingMode): THREE.ToneMapping {
  */
 export class Renderer implements Disposable {
   private readonly renderer: THREE.WebGLRenderer;
+  private pixelRatioCap: number;
 
   constructor(config: RendererConfig, canvas: HTMLCanvasElement) {
+    this.pixelRatioCap = config.pixelRatioCap;
+
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: config.antialias,
@@ -28,11 +31,7 @@ export class Renderer implements Disposable {
       powerPreference: config.powerPreference,
     });
 
-    const pixelRatio = Math.min(
-      window.devicePixelRatio || 1,
-      config.pixelRatioCap,
-    );
-    this.renderer.setPixelRatio(pixelRatio);
+    this.renderer.setPixelRatio(this.effectivePixelRatio());
 
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = resolveToneMapping(config.toneMapping);
@@ -40,6 +39,19 @@ export class Renderer implements Disposable {
 
     this.renderer.shadowMap.enabled = config.shadowMapEnabled;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  }
+
+  /**
+   * Re-apply pixel ratio against a new (lower quality) cap. Never uses more
+   * than the renderer's configured cap.
+   */
+  setPixelRatioCap(cap: number): void {
+    this.pixelRatioCap = Math.min(this.pixelRatioCap, cap);
+    this.renderer.setPixelRatio(this.effectivePixelRatio());
+  }
+
+  private effectivePixelRatio(): number {
+    return Math.min(window.devicePixelRatio || 1, this.pixelRatioCap);
   }
 
   get domElement(): HTMLCanvasElement {

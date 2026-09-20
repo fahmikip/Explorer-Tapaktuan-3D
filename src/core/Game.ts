@@ -127,8 +127,8 @@ export class Game implements Disposable {
       this.config.world,
       {
         quality,
-        showGrid: this.config.debug.showGrid,
-        showBounds: this.config.debug.showBounds,
+        showGrid: this.config.debug.enabled && this.config.debug.showGrid,
+        showBounds: this.config.debug.enabled && this.config.debug.showBounds,
       },
     );
 

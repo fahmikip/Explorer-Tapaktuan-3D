@@ -34,7 +34,9 @@ export class AtmosphereSystem implements Disposable {
 
     if (config.skyEnabled) {
       const sky = new Sky();
-      sky.scale.setScalar(20000);
+      // Fits comfortably inside the camera far plane (5000) while far out
+      // enough to always surround the small play area.
+      sky.scale.setScalar(2000);
       const uniforms = (sky.material as THREE.ShaderMaterial).uniforms;
       uniforms.turbidity.value = config.sky.turbidity;
       uniforms.rayleigh.value = config.sky.rayleigh;

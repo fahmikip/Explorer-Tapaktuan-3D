@@ -53,12 +53,24 @@ PlayerAnimation    Animation state mapping (per approved assets)
 ### 2.3 World
 
 ```text
-WorldManager       World container (worldRoot), composition, dispose
-Ground             Flat placeholder collision surface (replaceable per phase)
-WorldBounds        Rectangular play area clamp (central config)
-Environment        Background, fog, hemisphere + directional lighting
-Terrain/...        Later-phase systems (world prototype builds on this root)
+WorldManager       Orchestration layer: composes world systems under a single
+                   worldRoot, exposes height/collision APIs, owns dispose
+TerrainSystem      Deterministic seeded height field (falloff + value noise);
+                   getHeightAt(x, z) is the single height authority
+OceanSystem        Lightweight vertex-wave grid at configurable height
+VegetationSystem   Instanced merged-geometry palms/bushes/grass (seeded)
+RockSystem         Instanced low-poly rocks (seeded)
+PathSystem         Generic terrain-following path ribbons + isOnPath()
+AtmosphereSystem   Sky dome, fog, hemisphere + directional sun (shadow by quality)
+WorldBounds        Rectangular play-area clamp (central config)
+WorldDebugHelper   Dev-only grid/bounds markers (gated by debug.enabled)
+DeterministicRandom Seeded PRNG + lattice hash noise utilities
 ```
+
+`Ground` and `Environment` were removed in Phase 3; flat placeholder ground was
+superseded by `TerrainSystem`, and the old environment helper by
+`AtmosphereSystem`. All world systems are deterministic for a given
+`worldConfig.seed`.
 
 ### 2.4 Gameplay
 
@@ -106,9 +118,15 @@ src/
 │   └── ThirdPersonCamera.ts
 ├── world/
 │   ├── WorldManager.ts
-│   ├── Ground.ts
-│   ├── Environment.ts
-│   └── WorldBounds.ts
+│   ├── TerrainSystem.ts
+│   ├── OceanSystem.ts
+│   ├── VegetationSystem.ts
+│   ├── RockSystem.ts
+│   ├── PathSystem.ts
+│   ├── AtmosphereSystem.ts
+│   ├── DeterministicRandom.ts
+│   ├── WorldBounds.ts
+│   └── WorldDebugHelper.ts
 ├── player/
 │   ├── Player.ts
 │   ├── PlayerController.ts
@@ -224,6 +242,70 @@ Do not optimize blindly — inspect or measure before major changes.
 - TypeScript strict mode, `noEmit`, moduleResolution `bundler`.
 - Build = `tsc --noEmit && vite build`.
 - Lint/test scripts added in the phase where testable logic first appears.
+
+---
+
+## 11. World Generation & Quality (Phase 3)
+
+### 11.1 Terrain
+
+- Height field: `elevation = falloff(r) * maxHeight + octaveNoise(x, z)`,
+  where `r` is the normalized radial distance from world center. A radial
+  smoothstep falloff creates the island silhouette (sea level at world edges);
+  three octaves of hash-based value noise add rolling contour.
+- Seeded by `worldConfig.seed`; `getHeightAt(x, z)` and `getSlopeAt(x, z)` are
+  the only height authorities. No system re-derives terrain internally.
+- Elevation bands (technical zones, not geographic claims):
+  - COAST — below ~1.5 m (sand)
+  - LOWLAND — ~1.5–3.8 m (grass)
+  - HILLS — ~3.8–6 m (slopes, mixed grass/hill)
+  - HIGHGROUND — near terrain max (rock-capped peaks)
+
+### 11.2 Ocean
+
+- Large grid plane at `ocean.height`, with a cheap deterministic vertex wave
+  (sum of two sines). Updated per frame; vertex normals recomputed. No shader,
+  no transparency, no normal maps.
+- Player collision clamps to `max(terrainHeight, oceanHeight)` so the player
+  cannot sink below sea level or float in open water.
+
+### 11.3 Vegetation / Rocks
+
+- One `InstancedMesh` per type with a single merged geometry and single
+  material (vertex colors baked). Placement is deterministic via a seeded
+  PRNG, filtered by height band, slope limit, water margin and path clearance.
+- Draw calls stay constant regardless of instance count.
+
+### 11.4 Paths
+
+- `PathDefinition` (id, points, width) in central config → Catmull-Rom curve →
+  terrain-following ribbon with sequential indices. `isOnPath(x, z, margin)`
+  keeps props off walkways.
+
+### 11.5 Quality Levels
+
+`low | medium | high` (config `world.quality`):
+
+| Setting | low | medium | high |
+| --- | --- | --- | --- |
+| terrain segments | 48 | 72 | 96 |
+| ocean segments | 32 | 40 | 48 |
+| vegetation density × | 0.5 | 0.75 | 1 |
+| rock density × | 0.5 | 0.75 | 1 |
+| shadow map size | off | 512 | 1024 |
+| pixel ratio cap | 1 | 1.5 | 2 |
+
+### 11.6 Scene Hierarchy
+
+```text
+worldRoot
+├── terrain
+├── ocean
+├── vegetation (instanced palms / bushes / grass)
+├── rocks (instances)
+├── path-* (per path definition)
+└── debugGrid / debugBounds (dev only)
+```
 
 ---
 

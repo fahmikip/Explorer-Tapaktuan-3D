@@ -1,5 +1,68 @@
 # Changelog
 
+## Phase 3
+
+World Prototype — generic procedural coastal environment foundation.
+
+> This is a **technical/placeholder environment**, not a reconstruction of
+> Tapaktuan. No real-world geographic facts, roads, buildings, or landmarks
+> were used or invented.
+
+- **Added**: `TerrainSystem` — deterministic seeded height field. Elevation is
+  a smooth radial falloff (island silhouette) plus 3 octaves of hash-based
+  value noise; vertex-color ramp blends sand → grass → hill → rock by
+  elevation band (coast transition). `getHeightAt(x, z)` is the single height
+  authority used by the player, paths, vegetation and rocks. Seed centralized
+  in `gameConfig.world.seed` (12345).
+- **Added**: `OceanSystem` — lightweight grid plane at a configurable height
+  with a shader-free, deterministic vertex wave (amplitude/frequency/speed from
+  config). No transparency or normal maps.
+- **Added**: `VegetationSystem` — instanced, merged-geometry palms, bushes and
+  grass tufts. Each type is one `InstancedMesh` sharing one geometry + one
+  material; placement is deterministic (seeded PRNG), filtered by terrain
+  height, slope, water margin and path clearance.
+- **Added**: `RockSystem` — instanced low-poly rocks with per-instance palette
+  color variation; deterministic placement with the same filters.
+- **Added**: `PathSystem` — generic exploration paths (coastal walk, hill
+  trail, beach spine) as terrain-following ribbons defined by point lists in
+  config. Purely decorative navigation structure; NOT real roads. Exposes
+  `isOnPath()` so props stay off walkways.
+- **Added**: `AtmosphereSystem` — procedural `Sky` dome (scale fits the camera
+  far plane), scene fog (config-driven), hemisphere ambient and directional sun
+  with shadow gated by the active quality level.
+- **Added**: `DeterministicRandom` — mulberry32 seeded PRNG and integer-lattice
+  hash noise utilities. `worldSeed` fully determines terrain, vegetation, rocks
+  and jitter (no `Math.random()` in world generation).
+- **Added**: `WorldDebugHelper` — optional grid + bounds marker, gated behind
+  `debug.enabled` (never visible in production).
+- **Changed**: `WorldManager` is now the orchestration layer composing
+  Terrain → Ocean → Paths → Vegetation → Rocks → Atmosphere under a single
+  `worldRoot`; `collisionHeightAt()` returns terrain height clamped to sea
+  level so the player cannot sink or float in open water.
+- **Changed**: `PlayerController` collision moved from flat ground to terrain
+  height via the `groundHeightAt` callback; jump, gravity and bounds clamp
+  preserved.
+- **Changed**: `Renderer` gains a quality-aware `setPixelRatioCap`; `Game`
+  wires the active quality level (`low | medium | high`) from config into the
+  world and renderer.
+- **Extended**: `DebugUI` telemetry now includes player position, velocity,
+  grounded state, terrain height, ocean height, world seed, current quality,
+  vegetation/rock/path counts alongside FPS, resolution, DPR, draw calls and
+  triangles.
+- **Fixed**: terrain vertex-color bands now compose cumulatively so the
+  sand→grass→hill→rock coast ramp actually renders (previously the later bands
+  overwrote earlier ones). Camera far plane raised to 5000 and Sky dome scaled
+  to 2000 so the procedural sky is visible instead of depth-clipped.
+- **Removed**: `Environment` and `Ground` (Phase 2 flat placeholder) —
+  superseded by the modular world systems.
+- **Validated**: `npm run typecheck` PASS; `npm run build` PASS; production
+  preview serve PASS (HTTP 200). Browser runtime validation not available.
+- **Architectural decisions**: no physics engine (height-field collision);
+  fully data-driven world tuning in `gameConfig`; three quality levels control
+  terrain/ocean segments, vegetation/rock density, shadow resolution and pixel
+  ratio; instancing + merged geometries keep draw calls low; all procedural
+  visuals are code-generated so `data/assets.json` correctly remains empty.
+
 ## Phase 2
 
 World Foundation + Player Controller.

@@ -253,7 +253,7 @@ export const gameConfig: GameConfig = {
   camera: {
     fov: 55,
     near: 0.1,
-    far: 1000,
+    far: 5000,
     thirdPerson: {
       distance: 6.5,
       height: 2.2,
@@ -279,11 +279,11 @@ export const gameConfig: GameConfig = {
     },
 
     terrain: {
-      maxHeight: 8,
-      falloffStart: 0.35,
-      falloffEnd: 0.7,
+      maxHeight: 5,
+      falloffStart: 0.25,
+      falloffEnd: 0.6,
       noiseWavelength: 24,
-      noiseAmplitude: 2,
+      noiseAmplitude: 2.5,
       noiseOctaves: 3,
       beachHeight: 1.5,
       grassHeight: 3.8,

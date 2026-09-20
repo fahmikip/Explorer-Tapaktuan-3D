@@ -143,7 +143,8 @@ CONTINUE EXPLORING
 - Phase 0 — Project Foundation: **Complete**
 - Phase 1 — Three.js Foundation: **Complete**
 - Phase 2 — World Foundation + Player Controller: **Complete**
-- Phase 3 — Pending (explicit authorization required)
+- Phase 3 — World Prototype (procedural coastal environment foundation): **Complete**
+- Phase 4 — Pending (explicit authorization required)
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 
@@ -175,6 +176,22 @@ See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
   tourism systems are explicitly out of scope for Phase 2.
 - **Phase 2 record**: Completed — see [CHANGELOG.md](./CHANGELOG.md) for the
   implemented modules and validation results.
+
+### Phase 3
+
+- **STATEMENT of position**: the Phase 3 world is a generic procedural
+  coastal environment foundation (terrain, ocean, vegetation, rocks, generic
+  paths, atmosphere). It is placeholder/technical art and **not** a
+  reconstruction of Tapaktuan; no real geographic facts, roads, buildings or
+  landmarks were used or invented.
+- **Phase 3 scope**: procedural environment foundation only — terrain height
+  field, ocean, coast transition, instanced vegetation and rocks, generic
+  paths, sky/fog/lighting, quality levels, debug tools, terrain-player
+  collision integration. NPCs, dialogue, quests, achievements, landmarks,
+  tourism content, day/night and weather simulation are explicitly out of
+  scope for Phase 3.
+- **Phase 3 record**: Completed — see [CHANGELOG.md](./CHANGELOG.md) for the
+  implemented modules, fixes and validation results.
 
 ---
 

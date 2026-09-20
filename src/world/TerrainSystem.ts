@@ -121,9 +121,9 @@ export class TerrainSystem implements Disposable {
       position.setY(i, elevation);
 
       scratch.copy(sand);
-      this.band(scratch, sand, grass, elevation, this.config.beachHeight, 0.8);
-      this.band(scratch, grass, hill, elevation, this.config.grassHeight, 1.2);
-      this.band(scratch, hill, rock, elevation, this.config.hillHeight, 1.6);
+      this.band(scratch, grass, elevation, this.config.beachHeight, 0.8);
+      this.band(scratch, hill, elevation, this.config.grassHeight, 1.2);
+      this.band(scratch, rock, elevation, this.config.hillHeight, 1.6);
 
       const jitter = hash2(x * 3.7, z * 3.1, this.seed + 9001) * 0.07 - 0.035;
       scratch.offsetHSL(0, 0, jitter);
@@ -134,16 +134,20 @@ export class TerrainSystem implements Disposable {
     this.geometry.setAttribute("color", colorAttribute);
   }
 
+  /**
+   * Cumulatively blends the surface color toward `to` as elevation passes the
+   * band centered at `center`. Each call refines the previous band, producing a
+   * coast→grass→hill→rock ramp instead of overwriting the earlier colors.
+   */
   private band(
     color: THREE.Color,
-    from: THREE.Color,
     to: THREE.Color,
     elevation: number,
     center: number,
     width: number,
   ): void {
     const t = smoothstep01((elevation - (center - width * 0.5)) / width);
-    color.copy(from).lerp(to, t);
+    color.lerp(to, t);
   }
 }
 

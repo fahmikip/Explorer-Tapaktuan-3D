@@ -73,4 +73,42 @@ Transitions between zones should be physically plausible and visually communicat
 
 ---
 
+## 7. Phase 3 — Procedural Environment Foundation
+
+The Phase 3 world is a **generic procedural coastal environment** built to
+establish the technical foundation for future world building. It is **not** a
+representation of Tapaktuan; no real geography, roads, buildings or landmarks
+were used or assumed.
+
+### 7.1 Terrain concept
+
+- Deterministic seeded island silhouette (height + noise), designed to read as
+  "coast → lowland → hills → high ground" when moving inland from the sea.
+- Vertex-color elevation ramp communicates the zones through material: sand
+  near the shore, grass over the lowlands, hills with rocky caps at the peaks.
+- The terrain is intentionally generic so later phases can replace or layer it
+  with approved, statused land data.
+
+### 7.2 Environment placement
+
+- Vegetation (palms, bushes, grass) and rocks are placed procedurally with
+  rules tuned to believable terrain: kept off steep slopes, off walkways, and
+  away from open water.
+- Streets/walkways are generic exploration paths (coastal walk, hill trail,
+  beach spine) defined in config — navigation structure only, never real roads.
+
+### 7.3 Visual tone
+
+- Warm tropical light (hemisphere + directional sun), soft fog for depth, calm
+  ocean with subtle wave. Palette: natural sand, foliage and sea tones per
+  [ART_DIRECTION.md](./ART_DIRECTION.md).
+
+### 7.4 Placeholder status
+
+- All Phase 3 visuals are **placeholder / technical art** and are not
+  subject to `data/assets.json` registration because they are procedurally
+  code-generated (no external asset files are shipped).
+
+---
+
 _This document is part of the project source of truth._

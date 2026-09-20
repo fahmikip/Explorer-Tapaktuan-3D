@@ -98,4 +98,23 @@ Mixed or incompatible visual languages are not permitted without explicit approv
 
 ---
 
+## 9. Phase 3 Procedural Palette (Technical Art)
+
+The Phase 3 environment uses a centralized placeholder palette aligned to the
+visual bible (no external assets shipped — everything is code-generated):
+
+- **Terrain ramp**: sand `#e5d4a7` → grass `#7fae6d` → hill `#5f7a4a` → rock
+  `#8d8578` by elevation band (coast → highlands).
+- **Vegetation**: trunks `#9c8360`, foliage `#3e8b46`, bushes `#4c8f55`,
+  grass `#8fc26a`.
+- **Water**: calm tropical sea `#2f7fa6`, subtle wave, low roughness.
+- **Atmosphere**: soft sky-blue fog `#c9dde8`, warm sun light `#fff1e0`,
+  cool hemisphere fill `#cfe6ff` over warm ground `#9aa880`.
+
+All values live in `src/config/gameConfig.ts`. These are placeholder art and
+may be replaced by approved assets per disciplined asset governance without
+changing the palette's climate or tone.
+
+---
+
 _This document is part of the project source of truth._

@@ -28,7 +28,15 @@
 
 ## Phase 3 — World Prototype
 
-- Terrain, road, buildings, vegetation, ocean, mountains (vertical slice).
+Procedural coastal environment foundation (technical placeholder, not a
+Tapaktuan reconstruction).
+
+- Terrain height field, deterministic seeded generation.
+- Ocean, beach/coast transition.
+- Instanced vegetation and rocks.
+- Generic exploration paths.
+- Sky, fog, lighting, quality levels, debug tools.
+- **Status: Complete** — see `CHANGELOG.md`.
 
 ## Phase 4 — Landmark & Discovery
 

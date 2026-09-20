@@ -40,7 +40,13 @@ Tapaktuan reconstruction).
 
 ## Phase 4 — Landmark & Discovery
 
-- Landmark registry, interaction, discovery, information UI, XP.
+- Landmark registry, interaction, discovery, information UI.
+- Data pipeline (`/data/landmarks.json` → validation → registry → spawning),
+  generic interaction layer, first-discovery tracking with optional
+  persistence, info panel + interaction hint UI, dev-only test landmarks.
+- XP/rewards for discovery are not part of Phase 4 (deferred; rewards appear
+  with quests/achievements).
+- **Status: Complete** — see `CHANGELOG.md`.
 
 ## Phase 5 — NPC & Dialogue
 

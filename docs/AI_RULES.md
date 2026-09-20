@@ -100,6 +100,10 @@ Unrelated, unblocked work may continue.
 - Data-driven content; no hard-coded datasets.
 - Graceful error handling; no hidden failures; no silent state corruption.
 - Respect the current phase; no premature implementation of future phases.
+- Landmark/test content follows the data pipeline: `/data/landmarks.json` →
+  validation → registry → spawning. Do not inject landmark content directly
+  into system code; do not set `isTestData: true` items to `approved`; test
+  placeholders are development probes only and are not creative content.
 
 ---
 

@@ -131,6 +131,32 @@ export interface PathDefinition {
   points: readonly (readonly [number, number])[];
 }
 
+export interface LandmarkColorsConfig {
+  undiscovered: string;
+  nearby: string;
+  discovered: string;
+}
+
+export interface LandmarkPaletteConfig {
+  base: string;
+  accent: string;
+}
+
+export interface LandmarksConfig {
+  defaultInteractionRadius: number;
+  groundOffset: number;
+  iconOffset: number;
+  iconScale: number;
+  labelScale: number;
+  markerColors: LandmarkColorsConfig;
+  palette: LandmarkPaletteConfig;
+}
+
+export interface DiscoveryConfig {
+  /** Persist discovered landmark IDs to localStorage when true. */
+  persist: boolean;
+}
+
 export interface PathConfig {
   enabled: boolean;
   heightOffset: number;
@@ -183,6 +209,7 @@ export interface WorldConfig {
   vegetation: VegetationConfig;
   rocks: RockConfig;
   paths: PathConfig;
+  landmarks: LandmarksConfig;
   atmosphere: AtmosphereConfig;
   grid: WorldGridConfig;
   quality: QualityConfig;
@@ -193,6 +220,7 @@ export interface DebugConfig {
   fpsSmoothingFactor: number;
   showGrid: boolean;
   showBounds: boolean;
+  showDebugLandmarks: boolean;
 }
 
 export interface GameConfig {
@@ -205,6 +233,7 @@ export interface GameConfig {
   world: WorldConfig;
   player: PlayerConfig;
   debug: DebugConfig;
+  discovery: DiscoveryConfig;
 }
 
 const QUALITY_LEVELS: Record<QualityLevel, QualitySettings> = {
@@ -412,6 +441,23 @@ export const gameConfig: GameConfig = {
       ],
     },
 
+    landmarks: {
+      defaultInteractionRadius: 5,
+      groundOffset: 0.03,
+      iconOffset: 1.7,
+      iconScale: 0.6,
+      labelScale: 2.1,
+      markerColors: {
+        undiscovered: "#f5e9a0",
+        nearby: "#ffd55a",
+        discovered: "#8fd6a0",
+      },
+      palette: {
+        base: "#cdb48a",
+        accent: "#7fae6d",
+      },
+    },
+
     atmosphere: {
       skyEnabled: true,
       sky: {
@@ -471,5 +517,10 @@ export const gameConfig: GameConfig = {
     fpsSmoothingFactor: 0.1,
     showGrid: true,
     showBounds: false,
+    showDebugLandmarks: true,
+  },
+
+  discovery: {
+    persist: true,
   },
 };

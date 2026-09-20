@@ -1,5 +1,72 @@
 # Changelog
 
+## Phase 4
+
+Landmark & Point of Interest System — data-driven landmark pipeline with
+interaction, discovery and an information panel.
+
+> This phase establishes the **system**, not the content. The only landmarks
+> shipped are development test probes (`isTestData: true`, `status: "draft"`)
+> used to validate the pipeline. No real Tapaktuan facts were used or invented.
+
+- **Added**: `src/landmarks/types.ts` — data contract: `LandmarkDefinition`
+  (id, name, type, position{x,z,y?}, shortDescription?, description?, image?,
+  source?, assetId?, interactionRadius?, groundOffset?, scale?, tags?,
+  isTestData?, status) across types `landmark | poi | viewpoint | information |
+  discovery` and the `draft…deprecated` data status ladder.
+- **Added**: `src/data/LandmarkDataLoader.ts` — non-throwing load + validation
+  of `/data/landmarks.json` (imported directly as a TS module via Vite JSON
+  import + `resolveJsonModule`, keeping a single source of truth). Duplicate
+  IDs, invalid `type`/`status`, missing names and non-finite positions are
+  reported as issues and skipped without crashing.
+- **Added**: `src/landmarks/LandmarkRegistry.ts` — validated catalog with
+  `getById/getAll/getApproved/getTestData/selectVisible(allowTestData)`.
+  Only `status==="approved"` items are production; test data is gated behind
+  `debug.enabled && debug.showDebugLandmarks && import.meta.env.DEV`, so it can
+  never appear in a production build.
+- **Added**: generic interaction layer — `src/interaction/Interactable.ts`
+  (id, point, radius, canInteract, label?, onInteract — no domain content) and
+  `src/interaction/InteractionManager.ts` (nearest-within-radius detection via
+  squared distances, press-edge interact, `onTargetChange`). Consumed by
+  landmarks now; reusable by NPCs/quest objects later.
+- **Added**: discovery layer — `src/discovery/DiscoveryManager.ts`
+  (first-discovery Set, emits `landmark:discovered` once per landmark) and
+  `src/discovery/DiscoveryStorage.ts` (`MemoryDiscoveryStorage` /
+  `LocalStorageDiscoveryStorage` behind one interface, key
+  `explore-tapaktuan:discovery:landmarks`, storage failures degrade safely).
+- **Added**: `src/landmarks/Landmark.ts` (interactable runtime entity: ground
+  ring + glyph state icon `?`→`!`→`✓` + optional name label; state is never
+  color-only), `LandmarkFactory.ts` (procedural placeholder visuals per type
+  with shared factory materials vs per-landmark geometries) and
+  `LandmarkManager.ts` (spawns registry-selected landmarks into the world,
+  syncs marker state with interaction/discovery each frame, disposes fully).
+- **Added**: `src/ui/LandmarkInfoPanel.ts` (right-side panel / mobile bottom
+  sheet via media query, Escape + 44 px close button, hides empty fields,
+  "DEBUG / TEST DATA" badge) and `src/ui/InteractionHint.ts` (bottom pill
+  `[E] <label>` shown when an interactable is in range).
+- **Added**: landmark visual styles + panel/hint styles to `src/styles/main.css`
+  using existing design tokens.
+- **Added**: `InputState.interact` + `KeyE` mapping in `KeyboardInput`; Game
+  gates movement/jump/sprint and interact while the info panel is open (with
+  correct press-consumption so a held E cannot re-fire after close).
+- **Extended**: `GameEventMap` topics — `"interaction:target-changed"`,
+  `"landmark:interacted"`, `"landmark:discovered"`.
+- **Extended**: `gameConfig` — `world.landmarks` (default interaction radius,
+  ground offset, icon offset/scale, label scale, marker colors, palette),
+  `debug.showDebugLandmarks`, `discovery.persist`.
+- **Extended**: `DebugUI` telemetry with `landmarks` / `discovered` counts.
+- **Data**: `/data/landmarks.json` now contains the three dev test probes
+  (`TEST_LANDMARK_01` at (0,14), `TEST_VIEWPOINT_01` at (28,28),
+  `TEST_DISCOVERY_01` at (-25,20)), all `isTestData: true` / `status: "draft"`.
+- **Validated**: `npm run typecheck` PASS; `npm run build` PASS. Browser
+  runtime validation not available (no automation tooling).
+- **Architectural decisions**: content stays in `/data/*.json`, logic stays
+  generic (`Interactable` carries no landmark knowledge); interaction is a
+  shared subsystem rather than a player raycast; discovery persistence is
+  swappable behind `DiscoveryStorage`; all placeholder visuals are procedural
+  (no asset registration required, `assets.json` remains empty); the chunk
+  >500 kB warning remains unchanged (Three.js core, code splitting deferred).
+
 ## Phase 3
 
 World Prototype — generic procedural coastal environment foundation.

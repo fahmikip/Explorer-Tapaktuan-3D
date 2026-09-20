@@ -7,6 +7,7 @@ const KEY_LEFT = new Set(["KeyA", "ArrowLeft"]);
 const KEY_RIGHT = new Set(["KeyD", "ArrowRight"]);
 const KEY_SPRINT = new Set(["ShiftLeft", "ShiftRight"]);
 const KEY_JUMP = "Space";
+const KEY_INTERACT = "KeyE";
 
 /**
  * Keyboard input source mapping raw key state to InputState.
@@ -46,6 +47,7 @@ export class KeyboardInput implements Disposable {
       moveZ: forward - backward,
       jump: this.isKeyDown(KEY_JUMP),
       sprint: this.pressed(KEY_SPRINT),
+      interact: this.isKeyDown(KEY_INTERACT),
     };
   }
 

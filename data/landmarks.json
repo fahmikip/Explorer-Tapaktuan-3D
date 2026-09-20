@@ -1,5 +1,34 @@
 {
   "version": 1,
   "status": "draft",
-  "items": []
+  "items": [
+    {
+      "id": "TEST_LANDMARK_01",
+      "name": "Uji Landmark",
+      "type": "landmark",
+      "position": { "x": 0, "z": 14 },
+      "shortDescription": "Landmark uji untuk fase pengembangan (data test, bukan konten nyata).",
+      "description": "Entri data pengujian untuk memvalidasi pipeline landmark. Seluruh konten di sini adalah placeholder dan tidak mewakili objek sungguhan.",
+      "isTestData": true,
+      "status": "draft"
+    },
+    {
+      "id": "TEST_VIEWPOINT_01",
+      "name": "Uji Titik Pandang",
+      "type": "viewpoint",
+      "position": { "x": 28, "z": 28 },
+      "shortDescription": "Titik pandang uji untuk fase pengembangan.",
+      "isTestData": true,
+      "status": "draft"
+    },
+    {
+      "id": "TEST_DISCOVERY_01",
+      "name": "Uji Temuan",
+      "type": "discovery",
+      "position": { "x": -25, "z": 20 },
+      "shortDescription": "Temuan uji untuk fase pengembangan.",
+      "isTestData": true,
+      "status": "draft"
+    }
+  ]
 }

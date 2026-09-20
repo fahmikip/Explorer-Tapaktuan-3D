@@ -36,13 +36,20 @@ Every data file begins with:
 - Unique IDs, stable forever once released.
 - Prefixes by domain: `landmark_001`, `npc_001`, `quest_001`,
   `dialogue_001`, `achievement_001`, `asset_001`, `location_001`.
-- Example landmark schema:
+- Example landmark schema (`/data/landmarks.json`):
 
 ```text
-id, name, type, description, coordinates, images, audio, sources, status
+id, name, type, position{x,z,y?}, shortDescription?, description?, image?,
+source?, assetId?, interactionRadius?, groundOffset?, scale?, tags?,
+isTestData?, status
 ```
 
+- `type` ∈ `landmark | poi | viewpoint | information | discovery`.
+- `position.z` replaces the old `coordinates` for the current 2D-world schema;
+  `y` is optional and defaults to terrain height.
 - IDs are never renamed; renaming breaks discoverability and saves.
+- The landmark loader (Phase 4) rejects duplicate IDs and invalid entries with
+  reported issues instead of crashing; valid entries are still loaded.
 
 ---
 
@@ -71,6 +78,13 @@ AI rules:
 - Invalid required data → meaningful error logged, no silent corruption.
 - Missing optional data → safe fallback.
 - Loading failure of a content category must not crash the application.
+- Phase 4 landmark loader is non-throwing: it validates every item and logs
+  issues (e.g. `Duplicate ID: <id>`, invalid `type`/`status`, non-finite
+  positions) while still loading the valid remainder. Test data is rendered
+  only with an explicit dev gate:
+  `debug.enabled && debug.showDebugLandmarks && import.meta.env.DEV`.
+- `isTestData: true` is a permanent guard tag: such items can never render as
+  production content, regardless of status.
 
 ---
 

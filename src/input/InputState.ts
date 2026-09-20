@@ -1,6 +1,7 @@
 /**
  * Unified gameplay input state produced by any input source.
- * Consumed by PlayerController; independent of raw DOM/device events.
+ * Consumed by PlayerController (movement refs) and InteractionManager
+ * (interact edge); independent of raw DOM/device events.
  */
 export interface InputState {
   /** Strafe axis: -1 left, 1 right, 0 neutral. */
@@ -11,6 +12,8 @@ export interface InputState {
   jump: boolean;
   /** Sprint requested (held). */
   sprint: boolean;
+  /** Interact requested (held). Press-edge handling lives in the consumer. */
+  interact: boolean;
 }
 
 export function createIdentityInputState(): InputState {
@@ -19,5 +22,6 @@ export function createIdentityInputState(): InputState {
     moveZ: 0,
     jump: false,
     sprint: false,
+    interact: false,
   };
 }

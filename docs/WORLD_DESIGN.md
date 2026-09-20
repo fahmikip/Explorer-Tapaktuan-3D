@@ -52,6 +52,44 @@ Transitions between zones should be physically plausible and visually communicat
 - Landmark content appears through the Discovery system, not as hard-coded text.
 - No fictional landmark may be presented as real. No real landmark name may be
   invented, renamed, or relocated.
+- Content lives in `/data/landmarks.json` and is rendered only after passing the
+  data loader validation: approved (`status: "approved"`) items are production
+  content; anything flagged `isTestData: true` is visible only in development
+  and never ships (see [DATA_RULES.md](./DATA_RULES.md)).
+
+---
+
+## 4A. Landmark Gameplay (Phase 4)
+
+Phase 4 establishes the **system** for landmarks/POIs, not the content. The
+spawned markers are test placeholders (named "Uji …"), purely for validating
+the pipeline.
+
+Gameplay loop:
+
+- Landmarks are placed in the world at positions declared in data (terrain
+  height used automatically when `y` is omitted).
+- Approaching a POI shows an interaction hint (`[E] …`).
+- Pressing E opens the read-only information panel with the content approved in
+  data (descriptions/fields hidden when empty). Test items carry a
+  "DEBUG / TEST DATA" badge.
+- First viewing marks the landmark as discovered; marker color/icon updates and
+  the discovery is persisted (optional).
+
+Marker states are conveyed by three signals — color, glyph and ring — and are
+never color-only, keeping the system friendly to color-blind players.
+
+### Test landmark placeholder positions (Phase 4, dev only)
+
+| ID | Type | Position |
+| --- | --- | --- |
+| `TEST_LANDMARK_01` | landmark | (0, 14) |
+| `TEST_VIEWPOINT_01` | viewpoint | (28, 28) |
+| `TEST_DISCOVERY_01` | discovery | (-25, 20) |
+
+All are `isTestData: true`, `status: "draft"`, and exist only inside the ~±38 m
+play bounds. They are **not** creative content placements — they are development
+probes and will be removed/replaced when real approved data arrives.
 
 ---
 

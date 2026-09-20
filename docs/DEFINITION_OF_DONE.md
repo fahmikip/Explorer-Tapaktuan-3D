@@ -70,4 +70,17 @@ Documentation is part of implementation:
 
 ---
 
+## Phase 4 Additions
+
+- Landmark data validates without crashing; invalid/duplicate items are
+  reported and skipped.
+- `selectVisible`/dev gate guarantee test landmarks cannot reach a production
+  build (`import.meta.env.DEV` guard).
+- Interaction press-edge cannot re-fire while the info panel is open.
+- Discovery persists only when configured; storage failures degrade safely.
+- Marker state is never color-only (glyph + ring convey state).
+- Every landmark/panel field hides when empty (no fabricated blanks).
+
+---
+
 _This document is part of the project source of truth._

@@ -39,4 +39,13 @@ export interface GameEventMap {
   "game.disposed": void;
   "player:jumped": void;
   resize: Size;
+
+  /** Active nearby interactable changed (fire only on change), or null. */
+  "interaction:target-changed": { id: string; label: string } | null;
+
+  /** Player interacted with a landmark (opened its information panel). */
+  "landmark:interacted": { landmarkId: string };
+
+  /** Landmark entered the player's discovered set for the first time. */
+  "landmark:discovered": { landmarkId: string };
 }

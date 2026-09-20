@@ -6,12 +6,27 @@ import { SceneManager } from "./SceneManager";
 import { AssetManager } from "./AssetManager";
 import { CameraManager } from "../camera/CameraManager";
 import { InputManager } from "../input/InputManager";
+import { createIdentityInputState } from "../input/InputState";
+import type { InputState } from "../input/InputState";
 import { DebugUI } from "../ui/DebugUI";
 import { WorldManager } from "../world/WorldManager";
 import { Player } from "../player/Player";
 import { PlayerController } from "../player/PlayerController";
 import type { PlayerState } from "../player/PlayerState";
 import type { DebugSnapshot, Disposable, LifecyclePhase, Size } from "./types";
+import { LandmarkDataLoader } from "../data/LandmarkDataLoader";
+import { LandmarkRegistry } from "../landmarks/LandmarkRegistry";
+import { LandmarkFactory } from "../landmarks/LandmarkFactory";
+import { LandmarkManager } from "../landmarks/LandmarkManager";
+import type { LandmarkDisplayInfo } from "../landmarks/types";
+import { InteractionManager } from "../interaction/InteractionManager";
+import { DiscoveryManager } from "../discovery/DiscoveryManager";
+import { LocalStorageDiscoveryStorage, MemoryDiscoveryStorage } from "../discovery/DiscoveryStorage";
+import { InteractionHint } from "../ui/InteractionHint";
+import { LandmarkInfoPanel } from "../ui/LandmarkInfoPanel";
+
+/** Gameplay input while a UI overlay (e.g. info panel) is open. */
+const LOCKED_INPUT: InputState = createIdentityInputState();
 
 export class GameInitializationError extends Error {
   constructor(message: string) {
@@ -48,6 +63,14 @@ export class Game implements Disposable {
   private controller!: PlayerController;
   private debugUI: DebugUI | null = null;
   private resizeObserver: ResizeObserver | null = null;
+
+  private landmarkRegistry: LandmarkRegistry | null = null;
+  private landmarkFactory: LandmarkFactory | null = null;
+  private landmarkManager: LandmarkManager | null = null;
+  private interactionManager: InteractionManager | null = null;
+  private discoveryManager: DiscoveryManager | null = null;
+  private hint: InteractionHint | null = null;
+  private panel: LandmarkInfoPanel | null = null;
 
   private canvas: HTMLCanvasElement | null = null;
   private animationFrameId: number | null = null;
@@ -153,10 +176,78 @@ export class Game implements Disposable {
 
     this.cameraManager.setTarget(this.player.group);
 
+    this.interactionManager = new InteractionManager({
+      onTargetChange: (target) => {
+        this.eventBus.emit(
+          "interaction:target-changed",
+          target
+            ? {
+                id: target.id,
+                label: target.getInteractionLabel?.() ?? "Interaksi",
+              }
+            : null,
+        );
+      },
+    });
+
+    const loader = new LandmarkDataLoader();
+    const loadResult = loader.load();
+    if (loadResult.issues.length > 0) {
+      console.warn(
+        "[Explore Tapaktuan 3D] Landmark data issues:",
+        loadResult.issues,
+      );
+    }
+    this.landmarkRegistry = new LandmarkRegistry(loadResult);
+
+    this.discoveryManager = new DiscoveryManager(
+      this.eventBus,
+      this.config.discovery.persist
+        ? new LocalStorageDiscoveryStorage()
+        : new MemoryDiscoveryStorage(),
+    );
+
+    this.landmarkFactory = new LandmarkFactory({
+      iconOffset: this.config.world.landmarks.iconOffset,
+      iconScale: this.config.world.landmarks.iconScale,
+      labelScale: this.config.world.landmarks.labelScale,
+      markerColors: this.config.world.landmarks.markerColors,
+      palette: this.config.world.landmarks.palette,
+    });
+
+    const landmarkConfig = this.config.world.landmarks;
+    const allowTestData =
+      this.config.debug.enabled &&
+      this.config.debug.showDebugLandmarks &&
+      import.meta.env.DEV;
+
+    this.landmarkManager = new LandmarkManager({
+      registry: this.landmarkRegistry,
+      factory: this.landmarkFactory,
+      interaction: this.interactionManager,
+      discovery: this.discoveryManager,
+      eventBus: this.eventBus,
+      world: this.world,
+      defaultInteractionRadius: landmarkConfig.defaultInteractionRadius,
+      groundOffset: landmarkConfig.groundOffset,
+      allowTestData,
+      showLabels: allowTestData,
+    });
+
     const uiRoot = document.getElementById(this.config.uiRootId);
     if (this.config.debug.enabled && uiRoot) {
       this.debugUI = new DebugUI(uiRoot, this.config.debug);
     }
+    if (uiRoot) {
+      this.hint = new InteractionHint(uiRoot);
+      this.panel = new LandmarkInfoPanel(uiRoot);
+    }
+
+    this.eventBus.on("landmark:interacted", this.handleLandmarkInteracted);
+    this.eventBus.on(
+      "interaction:target-changed",
+      this.handleInteractionTargetChanged,
+    );
 
     this.observeResize(app);
     this.handleResize();
@@ -193,9 +284,18 @@ export class Game implements Disposable {
   }
 
   update(deltaTime: number): void {
-    const input = this.inputManager.getState();
+    const raw = this.inputManager.getState();
+    const panelOpen = this.panel?.isOpen ?? false;
+    const input = panelOpen ? LOCKED_INPUT : raw;
     this.controller.update(deltaTime, input);
     this.world.update(deltaTime);
+    this.landmarkManager?.update(
+      deltaTime,
+      raw.interact,
+      !panelOpen,
+      this.player.position.x,
+      this.player.position.z,
+    );
     this.cameraManager.update(deltaTime);
 
     if (this.debugUI) {
@@ -234,6 +334,17 @@ export class Game implements Disposable {
     this.inputManager.dispose();
     this.controller.dispose();
     this.player.dispose();
+    this.landmarkManager?.dispose();
+    this.landmarkFactory?.disposeShared();
+    this.discoveryManager?.dispose();
+    this.interactionManager?.dispose();
+    this.eventBus.off("landmark:interacted", this.handleLandmarkInteracted);
+    this.eventBus.off(
+      "interaction:target-changed",
+      this.handleInteractionTargetChanged,
+    );
+    this.panel?.dispose();
+    this.hint?.dispose();
     this.cameraManager.dispose();
     this.world.dispose();
     this.debugUI?.dispose();
@@ -305,8 +416,35 @@ export class Game implements Disposable {
     this.extras["rocks"] = `${this.world.rockCount}`;
     this.extras["paths"] = `${this.world.pathCount}`;
 
+    this.extras["landmarks"] = `${this.landmarkManager?.visibleCount ?? 0}`;
+    this.extras["discovered"] = `${this.discoveryManager?.count ?? 0}`;
+
     return this.extras;
   }
+
+  private readonly handleLandmarkInteracted = (payload: {
+    landmarkId: string;
+  }): void => {
+    const definition = this.landmarkRegistry?.getById(payload.landmarkId);
+    if (!definition || !this.panel) return;
+    const info: LandmarkDisplayInfo = {
+      id: definition.id,
+      name: definition.name,
+      type: definition.type,
+      shortDescription: definition.shortDescription,
+      description: definition.description,
+      source: definition.source,
+      isTestData: definition.isTestData,
+      discovered: this.discoveryManager?.isDiscovered(definition.id) ?? false,
+    };
+    this.panel.open(info);
+  };
+
+  private readonly handleInteractionTargetChanged = (
+    payload: { id: string; label: string } | null,
+  ): void => {
+    this.hint?.setTarget(payload?.label ?? null);
+  };
 
   private observeResize(container: HTMLElement): void {
     this.resizeObserver = new ResizeObserver(() => this.handleResize());

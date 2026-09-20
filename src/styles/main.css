@@ -92,3 +92,146 @@ body {
     min-width: 0;
   }
 }
+
+/* Interaction hint (bottom-center pill) */
+#interaction-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(12, 18, 24, 0.78);
+  color: #f2e9cf;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+#interaction-hint[hidden] {
+  display: none;
+}
+
+/* Landmark information panel */
+#landmark-info-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  border-radius: 12px;
+  background: rgba(16, 24, 30, 0.92);
+  color: #eef4f5;
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
+}
+
+#landmark-info-panel[hidden] {
+  display: none;
+}
+
+.landmark-panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 14px 0;
+}
+
+.landmark-panel-titles {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.landmark-panel-name {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  word-wrap: break-word;
+}
+
+.landmark-panel-type {
+  color: #9fc4a0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.landmark-panel-badge {
+  align-self: center;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #b4533a;
+  color: #fff3ec;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.landmark-panel-close {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #c9d6da;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.landmark-panel-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.landmark-panel-body {
+  padding: 10px 14px 16px;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.landmark-panel-short {
+  margin: 0;
+  color: #d7e2d8;
+  font-weight: 600;
+}
+
+.landmark-panel-description {
+  margin: 0;
+  color: #c4d0d3;
+}
+
+.landmark-panel-source {
+  margin: 0;
+  color: #8fa6ad;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  #landmark-info-panel {
+    top: auto;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 62vh;
+  }
+
+  .landmark-panel-close {
+    width: 48px;
+    height: 48px;
+  }
+}

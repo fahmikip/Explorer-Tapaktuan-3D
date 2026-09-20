@@ -31,10 +31,14 @@ Game             Application lifecycle and composition root
 SceneManager     Scene graph construction and registration
 Renderer         WebGL renderer setup, resize, frame
 AssetManager     GLB/texture/audio loading, caching, fallback
-EventBus         Typed publish/subscribe
+EventBus         Typed publish/subscribe (see Core/GameEventMap topics)
 InputManager     Unified keyboard/mouse/touch input state
 SaveManager      Versioned persistence (localStorage)
 ```
+
+`GameEventMap` (src/core/types.ts) is the typed event catalog — new topics are
+added there as systems are introduced (current: gameplay, resize, and the
+`interaction:*` / `landmark:*` topics).
 
 ### 2.2 Player
 
@@ -46,9 +50,43 @@ PlayerConfig      Tunable movement/capsule parameters (values in gameConfig)
 PlayerState       Read-only gameplay snapshot for debug/telemetry
 
 (later phases)
-PlayerInteraction  Raycast interaction with interactables  (Phase 4+)
 PlayerAnimation    Animation state mapping (per approved assets)
 ```
+
+### 2.2.1 Interaction (Phase 4)
+
+```text
+Interactable        Generic contract (id, point, radius, canInteract,
+                    label?, onInteract) — landmarks now; NPCs/quest/signs later
+InteractionManager  Nearest-within-radius target detection (squared distances),
+                    press-edge interact, onTargetChange (emits
+                    "interaction:target-changed")
+```
+
+Interaction is deliberately generic: it carries no landmark/domain data, so
+future interactables reuse it unchanged. Panels/hints react to bus events;
+Game gates interactions while a UI overlay is open.
+
+### 2.2.2 Landmarks & Discovery (Phase 4)
+
+```text
+Landmark             Runtime entity: group, ground ring, state icon, optional
+                     label; implements Interactable; marker state machine
+LandmarkFactory      Procedural placeholder visuals per type (shared materials,
+                     per-landmark geometries) — no asset pipeline needed
+LandmarkManager      Spawns registry-selected landmarks into the world, syncs
+                     marker state with interaction/discovery per frame
+LandmarkRegistry     Validated catalog: lookup, getApproved/getTestData,
+                     selectVisible(allowTestData)
+LandmarkDataLoader   Non-throwing JSON load + validation (duplicates/invalid
+                     items rejected with reported issues)
+DiscoveryManager     First-discovery tracking, persists through DiscoveryStorage,
+                     emits "landmark:discovered" once per landmark
+DiscoveryStorage     MemoryStorage / LocalStorageStorage behind one interface
+```
+
+Test data renders only when `debug.enabled && debug.showDebugLandmarks &&
+import.meta.env.DEV` — never in a production build.
 
 ### 2.3 World
 
@@ -76,7 +114,7 @@ superseded by `TerrainSystem`, and the old environment helper by
 
 ```text
 QuestManager       Quest state machine (data-driven)
-DiscoveryManager   Landmark discovery state
+DiscoveryManager   Landmark discovery state  (Phase 4)
 AchievementManager Achievement evaluation (generic rules)
 DialogueManager    Dialogue flow and state
 ```
@@ -101,6 +139,9 @@ AudioManager       Categories, volume control, graceful fallback
 
 ```text
 HUD, DialogUI, MapUI, DiscoveryUI, QuestUI, AchievementUI, PauseMenu
+LandmarkInfoPanel  Read-only landmark/POI info (right-side panel / mobile
+                   bottom sheet; hides empty fields; "DEBUG / TEST DATA" badge)
+InteractionHint    Bottom pill "[E] <label>" when an interactable is in range
 ```
 
 UI uses centralized design tokens (CSS custom properties) only.
@@ -137,7 +178,23 @@ src/
 │   ├── KeyboardInput.ts
 │   └── InputState.ts
 ├── interaction/
+│   ├── Interactable.ts
+│   └── InteractionManager.ts
+├── landmarks/
+│   ├── types.ts
+│   ├── Landmark.ts
+│   ├── LandmarkFactory.ts
+│   ├── LandmarkManager.ts
+│   └── LandmarkRegistry.ts
+├── data/
+│   └── LandmarkDataLoader.ts
+├── discovery/
+│   ├── DiscoveryManager.ts
+│   └── DiscoveryStorage.ts
 ├── ui/
+│   ├── DebugUI.ts
+│   ├── InteractionHint.ts
+│   └── LandmarkInfoPanel.ts
 ├── npc/
 ├── dialogue/
 ├── quest/
@@ -306,6 +363,57 @@ worldRoot
 ├── path-* (per path definition)
 └── debugGrid / debugBounds (dev only)
 ```
+
+---
+
+## 12. Interaction & Landmark System (Phase 4)
+
+### 12.1 Data pipeline
+
+```text
+/data/landmarks.json ──LandmarkDataLoader.load()──► validated definitions
+        │  (version + status + items; non-throwing validation;
+        │   duplicate/invalid items rejected with issues)
+        ▼
+LandmarkRegistry ── selectVisible(allowTestData) ──► spawn set
+        │
+        ▼
+LandmarkManager → LandmarkFactory.create() → Landmark (Interactable)
+```
+
+- Landmark data is imported as a TS module (`import ... from "../../data/landmarks.json"`)
+  — Vite JSON import + `resolveJsonModule`. No fetch, no duplication, single
+  source of truth in `/data`.
+- Only `status === "approved"` items are production content. Test data
+  (`isTestData: true`) spawns only under
+  `debug.enabled && debug.showDebugLandmarks && import.meta.env.DEV`.
+
+### 12.2 Runtime flow
+
+```text
+Per frame (LandmarkManager.update):
+  InteractionManager.update(interactHeld, allowed, playerX, playerZ)
+    → nearest target within its radius (squared distances, no sqrt)
+    → onTargetChange emitted only on target switch
+    → press-edge interact → landmark.onInteract()
+  LandmarkManager emits "landmark:interacted"
+  DiscoveryManager.discover(id) → emits "landmark:discovered" (first time)
+  Game opens LandmarkInfoPanel; while open the player input is locked
+```
+
+- The panel lock zeroes movement/jump/sprint for `PlayerController` and
+  gating `interactAllowed=true` on the bus — a held E cannot re-fire after the
+  panel closes (press remains consumed until released).
+- Discovered state syncs to marker icons (`?` undiscovered / `!` nearby /
+  `✓` discovered) and is persisted via `DiscoveryStorage` when
+  `discovery.persist` is true (localStorage key `explore-tapaktuan:discovery:landmarks`).
+
+### 12.3 Landmark visuals
+
+Placeholders are procedural (no assets): a ground ring, a state glyph sprite,
+and an optional name label. Type silhouettes differ (podium/pillar, obelisk,
+info board, POI post+sphere, discovery bauble). Shared factory materials are
+disposed once; each Landmark disposes its owned geometries/label texture.
 
 ---
 

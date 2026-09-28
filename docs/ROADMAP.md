@@ -51,6 +51,8 @@ Tapaktuan reconstruction).
 ## Phase 5 — NPC & Dialogue
 
 - NPC, interaction, dialogue, dialogue UI.
+- **Status: Complete** — data-driven NPCs and dialogues, branching interaction
+  flow and dev-only test content; see `CHANGELOG.md`.
 
 ## Phase 6 — Quest
 

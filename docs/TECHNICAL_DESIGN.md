@@ -418,3 +418,22 @@ disposed once; each Landmark disposes its owned geometries/label texture.
 ---
 
 _This document is part of the project source of truth._
+### 2.2.3 NPC & Dialogue (Phase 5)
+
+```text
+NPCDataLoader / DialogueDataLoader  JSON import, validation, graph checks
+NPCRegistry / DialogueRegistry      approved content + gated test content
+NPCFactory / NPC                    procedural placeholder visuals;
+                                    generic Interactable implementation
+NPCManager                          spawn, terrain placement, visibility,
+                                    talking state and interaction events
+DialogueEngine                      linear/choice state machine and events
+DialogueUI                          buttons, keyboard controls, optional
+                                    timed reveal, skip and close behavior
+```
+
+NPC interaction resolves its configured `dialogueId` in the validated
+ dialogue registry. Dialogue speaker IDs are checked against registered NPCs;
+speaker display names come from the NPC registry. Draft/test NPCs and dialogue
+definitions are available only in development with the corresponding debug
+flags. Production content requires approved/locked status.

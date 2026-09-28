@@ -145,7 +145,7 @@ CONTINUE EXPLORING
 - Phase 2 — World Foundation + Player Controller: **Complete**
 - Phase 3 — World Prototype (procedural coastal environment foundation): **Complete**
 - Phase 4 — Landmark & POI System: **Complete**
-- Phase 5 — Pending (explicit authorization required)
+- Phase 5 — NPC & Dialogue: **Complete**
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 
@@ -215,3 +215,15 @@ See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 ---
 
 _This document is part of the project source of truth._
+
+### Phase 5
+
+- **STATEMENT of position**: NPCs and dialogues are systems, not tourism
+  content. Current NPCs and dialogue are explicitly marked draft test data;
+  no real people or Tapaktuan facts are represented.
+- **Phase 5 scope**: validated data-driven NPC/dialogue catalogs, generic
+  interactable NPC placeholders, proximity visibility, linear and branching
+  dialogue state, keyboard/button UI, and dev-only test data. Quests,
+  achievements, production NPCs, and verified tourism content remain outside
+  this phase.
+- **Phase 5 record**: Complete � see [CHANGELOG.md](./CHANGELOG.md).

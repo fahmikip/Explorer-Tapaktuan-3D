@@ -1,5 +1,28 @@
 # Changelog
 
+## Phase 5
+
+NPC & Dialogue systems implemented. Current content is draft test data only;
+the phase adds no real people or verified Tapaktuan facts.
+
+- **Added**: NPC and dialogue data models, non-throwing loaders, duplicate and
+  field validation, dialogue graph/orphan checks, and speaker-ID validation.
+- **Added**: NPC/dialogue registries that expose approved/locked production
+  data and development test data only behind debug flags and Vite's dev guard.
+- **Added**: generic interactable NPC placeholders, terrain placement,
+  distance visibility and talking/idle state feedback.
+- **Added**: linear and branching dialogue state machine, typed events, and a
+  dialogue panel with keyboard/button controls, optional text reveal/skip, and
+  Escape close.
+- **Integrated**: pressing `E` near an NPC starts its configured dialogue;
+  dialogue overlays lock player movement and interaction. Speaker names resolve
+  through the NPC registry.
+- **Test content**: two draft test NPCs demonstrate linear and choice-based
+  conversations; both are excluded from production.
+- **Validated**: `npm run build` PASS; browser runtime validation unavailable.
+- **Known**: Vite reports the production JavaScript chunk exceeds 500 kB
+  minified; splitting is deferred until needed.
+
 ## Phase 4
 
 Landmark & Point of Interest System — data-driven landmark pipeline with

@@ -6,15 +6,18 @@ An interactive, browser-based 3D tourism experience inspired by Tapaktuan,
 Aceh Selatan. Explore a stylized tropical coastal world, discover verified
 landmarks, interact with the environment, and learn through guided exploration.
 
-> **Status:** Phase 4 (Landmark & POI System) — **Complete**.
+> **Status:** Phase 5 (NPC & Dialogue) — **Complete**.
 >
 > **Controls:** `W/A/S/D` or arrows to move, mouse drag to orbit the camera,
-> `Space` jump, `Shift` sprint, `E` interact with a nearby landmark.
+> `Space` jump, `Shift` sprint, `E` interact with a nearby landmark or NPC.
 >
 > **Dev mode only:** three test landmarks (badged "DEBUG / TEST DATA") let you
 > try the full flow — walk close, press `E`, then discover it. They are gated
 > behind `debug.showDebugLandmarks` + a `import.meta.env.DEV` check and can
 > never appear in a production build.
+>
+> Two test NPCs demonstrate linear and branching dialogue. They are draft test
+> data gated behind `debug.showDebugNpcs` + `import.meta.env.DEV`.
 
 The world build is a **generic procedural coastal environment foundation** —
 deterministic terrain, ocean, instanced vegetation and rocks, generic

@@ -1,5 +1,52 @@
 {
   "version": 1,
   "status": "draft",
-  "items": []
+  "items": [
+    {
+      "id": "dialogue_test_01",
+      "title": "Percakapan Uji 01",
+      "status": "draft",
+      "isTestData": true,
+      "nodes": [
+        {
+          "id": "d1_n1",
+          "speakerId": "TEST_GUIDE_01",
+          "text": "Selamat datang di uji data! Ini adalah jalur percakapan linear untuk menguji alur dialog.",
+          "next": "d1_n2"
+        },
+        {
+          "id": "d1_n2",
+          "speakerId": "TEST_GUIDE_01",
+          "text": "Tekan tombol lanjut untuk membaca teks berikutnya, atau bilang 'tutup' untuk keluar."
+        }
+      ]
+    },
+    {
+      "id": "dialogue_test_guide_01",
+      "title": "Pemandu Uji — Cabang Pilihan",
+      "status": "draft",
+      "isTestData": true,
+      "nodes": [
+        {
+          "id": "g1_n1",
+          "speakerId": "TEST_NPC_01",
+          "text": "Halo! Ingin melanjutkan ke tujuan berikutnya?",
+          "choices": [
+            { "id": "c1", "text": "Ya, ke tujuan berikutnya", "next": "g1_n2" },
+            { "id": "c2", "text": "Tidak, cukup di sini", "next": "g1_n3" }
+          ]
+        },
+        {
+          "id": "g1_n2",
+          "speakerId": "TEST_NPC_01",
+          "text": "Baik! Arahkan pandanganmu ke tenggara dan ikuti tanda penanda di pantai."
+        },
+        {
+          "id": "g1_n3",
+          "speakerId": "TEST_NPC_01",
+          "text": "Tentu, tidak apa-apa. Kembali kapan saja bila kamu siap melanjutkan petualangan."
+        }
+      ]
+    }
+  ]
 }

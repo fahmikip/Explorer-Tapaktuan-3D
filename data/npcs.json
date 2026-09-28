@@ -1,5 +1,26 @@
 {
   "version": 1,
   "status": "draft",
-  "items": []
+  "items": [
+    {
+      "id": "TEST_NPC_01",
+      "name": "TEST_NPC_01",
+      "role": "Walikota",
+      "position": { "x": 8, "z": -6 },
+      "rotationY": 0,
+      "dialogueId": "dialogue_test_01",
+      "isTestData": true,
+      "status": "draft"
+    },
+    {
+      "id": "TEST_GUIDE_01",
+      "name": "TEST_GUIDE_01",
+      "role": "Pemandu",
+      "position": { "x": -3, "z": 13 },
+      "rotationY": 0.4,
+      "dialogueId": "dialogue_test_guide_01",
+      "isTestData": true,
+      "status": "draft"
+    }
+  ]
 }

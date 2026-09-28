@@ -24,6 +24,14 @@ import { DiscoveryManager } from "../discovery/DiscoveryManager";
 import { LocalStorageDiscoveryStorage, MemoryDiscoveryStorage } from "../discovery/DiscoveryStorage";
 import { InteractionHint } from "../ui/InteractionHint";
 import { LandmarkInfoPanel } from "../ui/LandmarkInfoPanel";
+import { NPCDataLoader } from "../data/NPCDataLoader";
+import { NPCRegistry } from "../npc/NPCRegistry";
+import { NPCFactory } from "../npc/NPCFactory";
+import { NPCManager } from "../npc/NPCManager";
+import { DialogueDataLoader } from "../data/DialogueDataLoader";
+import { DialogueRegistry } from "../dialogue/DialogueRegistry";
+import { DialogueEngine } from "../dialogue/DialogueEngine";
+import { DialogueUI } from "../ui/DialogueUI";
 
 /** Gameplay input while a UI overlay (e.g. info panel) is open. */
 const LOCKED_INPUT: InputState = createIdentityInputState();
@@ -67,10 +75,16 @@ export class Game implements Disposable {
   private landmarkRegistry: LandmarkRegistry | null = null;
   private landmarkFactory: LandmarkFactory | null = null;
   private landmarkManager: LandmarkManager | null = null;
+  private npcRegistry: NPCRegistry | null = null;
+  private npcFactory: NPCFactory | null = null;
+  private npcManager: NPCManager | null = null;
+  private dialogueRegistry: DialogueRegistry | null = null;
+  private dialogueEngine: DialogueEngine | null = null;
   private interactionManager: InteractionManager | null = null;
   private discoveryManager: DiscoveryManager | null = null;
   private hint: InteractionHint | null = null;
   private panel: LandmarkInfoPanel | null = null;
+  private dialogueUI: DialogueUI | null = null;
 
   private canvas: HTMLCanvasElement | null = null;
   private animationFrameId: number | null = null;
@@ -234,6 +248,43 @@ export class Game implements Disposable {
       showLabels: allowTestData,
     });
 
+    const npcDataLoader = new NPCDataLoader();
+    const npcLoadResult = npcDataLoader.load();
+    if (npcLoadResult.issues.length > 0) {
+      console.warn("[Explore Tapaktuan 3D] NPC data issues:", npcLoadResult.issues);
+    }
+    this.npcRegistry = new NPCRegistry(npcLoadResult);
+
+    const dialogueDataLoader = new DialogueDataLoader();
+    const dialogueLoadResult = dialogueDataLoader.load();
+    if (dialogueLoadResult.issues.length > 0) {
+      console.warn(
+        "[Explore Tapaktuan 3D] Dialogue data issues:",
+        dialogueLoadResult.issues,
+      );
+    }
+    this.dialogueRegistry = new DialogueRegistry(dialogueLoadResult);
+    this.dialogueEngine = new DialogueEngine(this.dialogueRegistry, this.eventBus);
+
+    const npcConfig = this.config.world.npcs;
+    const allowTestNpcs =
+      this.config.debug.enabled &&
+      this.config.debug.showDebugNpcs &&
+      import.meta.env.DEV;
+
+    this.npcFactory = new NPCFactory(npcConfig.palette);
+    this.npcManager = new NPCManager({
+      registry: this.npcRegistry,
+      factory: this.npcFactory,
+      interaction: this.interactionManager,
+      eventBus: this.eventBus,
+      world: this.world,
+      defaultInteractionRadius: npcConfig.defaultInteractionRadius,
+      groundOffset: npcConfig.groundOffset,
+      visibilityDistance: npcConfig.visibilityDistance,
+      allowTestData: allowTestNpcs,
+    });
+
     const uiRoot = document.getElementById(this.config.uiRootId);
     if (this.config.debug.enabled && uiRoot) {
       this.debugUI = new DebugUI(uiRoot, this.config.debug);
@@ -241,6 +292,18 @@ export class Game implements Disposable {
     if (uiRoot) {
       this.hint = new InteractionHint(uiRoot);
       this.panel = new LandmarkInfoPanel(uiRoot);
+      this.dialogueUI = new DialogueUI({
+        container: uiRoot,
+        eventBus: this.eventBus,
+        config: this.config.dialogue,
+        getCurrentNode: () => this.dialogueEngine?.getCurrentNode() ?? null,
+        speakerResolver: (speakerId) =>
+          this.npcRegistry?.getById(speakerId)?.name ?? speakerId,
+        onContinue: () => this.dialogueEngine?.continue(),
+        onSelectChoice: (choiceId) =>
+          this.dialogueEngine?.selectChoice(choiceId),
+        onCloseRequest: () => this.closeDialogue(),
+      });
     }
 
     this.eventBus.on("landmark:interacted", this.handleLandmarkInteracted);
@@ -248,6 +311,8 @@ export class Game implements Disposable {
       "interaction:target-changed",
       this.handleInteractionTargetChanged,
     );
+    this.eventBus.on("npc:interacted", this.handleNpcInteracted);
+    this.eventBus.on("dialogue:completed", this.handleDialogueCompleted);
 
     this.observeResize(app);
     this.handleResize();
@@ -285,14 +350,21 @@ export class Game implements Disposable {
 
   update(deltaTime: number): void {
     const raw = this.inputManager.getState();
-    const panelOpen = this.panel?.isOpen ?? false;
-    const input = panelOpen ? LOCKED_INPUT : raw;
+    const uiOpen = Boolean(
+      (this.panel?.isOpen ?? false) || (this.dialogueUI?.isOpen ?? false),
+    );
+    const input = uiOpen ? LOCKED_INPUT : raw;
     this.controller.update(deltaTime, input);
     this.world.update(deltaTime);
-    this.landmarkManager?.update(
-      deltaTime,
+    this.interactionManager?.update(
       raw.interact,
-      !panelOpen,
+      !uiOpen,
+      this.player.position.x,
+      this.player.position.z,
+    );
+    this.landmarkManager?.update(deltaTime);
+    this.npcManager?.update(
+      deltaTime,
       this.player.position.x,
       this.player.position.z,
     );
@@ -336,6 +408,10 @@ export class Game implements Disposable {
     this.player.dispose();
     this.landmarkManager?.dispose();
     this.landmarkFactory?.disposeShared();
+    this.npcManager?.dispose();
+    this.npcFactory?.disposeShared();
+    this.dialogueEngine?.dispose();
+    this.dialogueUI?.dispose();
     this.discoveryManager?.dispose();
     this.interactionManager?.dispose();
     this.eventBus.off("landmark:interacted", this.handleLandmarkInteracted);
@@ -343,6 +419,8 @@ export class Game implements Disposable {
       "interaction:target-changed",
       this.handleInteractionTargetChanged,
     );
+    this.eventBus.off("npc:interacted", this.handleNpcInteracted);
+    this.eventBus.off("dialogue:completed", this.handleDialogueCompleted);
     this.panel?.dispose();
     this.hint?.dispose();
     this.cameraManager.dispose();
@@ -418,6 +496,11 @@ export class Game implements Disposable {
 
     this.extras["landmarks"] = `${this.landmarkManager?.visibleCount ?? 0}`;
     this.extras["discovered"] = `${this.discoveryManager?.count ?? 0}`;
+    this.extras["npcs"] = `${this.npcManager?.visibleCount ?? 0}`;
+    this.extras["dialogue"] =
+      this.dialogueEngine && this.dialogueEngine.isActive()
+        ? `${this.dialogueEngine.dialogueId ?? ""} (${this.dialogueEngine.getCurrentNode()?.id ?? "?"})`
+        : "idle";
 
     return this.extras;
   }
@@ -445,6 +528,33 @@ export class Game implements Disposable {
   ): void => {
     this.hint?.setTarget(payload?.label ?? null);
   };
+
+  private readonly handleNpcInteracted = (payload: { npcId: string }): void => {
+    if (!this.npcRegistry || !this.dialogueRegistry || !this.dialogueEngine) {
+      return;
+    }
+    const definition = this.npcRegistry.getById(payload.npcId);
+    if (!definition) return;
+    if (!definition.dialogueId) {
+      console.warn(`[Explore Tapaktuan 3D] NPC "${payload.npcId}" has no dialogue assigned.`);
+      return;
+    }
+    if (!this.dialogueRegistry.has(definition.dialogueId)) {
+      console.error(
+        `[Explore Tapaktuan 3D] Dialogue not found: "${definition.dialogueId}" (requested by NPC "${payload.npcId}").`,
+      );
+      return;
+    }
+    this.dialogueEngine.start(definition.dialogueId, definition.id);
+  };
+
+  private readonly handleDialogueCompleted = (): void => {
+    this.closeDialogue();
+  };
+
+  private closeDialogue(): void {
+    this.dialogueEngine?.close();
+  }
 
   private observeResize(container: HTMLElement): void {
     this.resizeObserver = new ResizeObserver(() => this.handleResize());

@@ -25,8 +25,8 @@ export interface LandmarkManagerOptions {
 }
 
 /**
- * Spawns the selected landmark set into the world, keeps their marker state
- * in sync with interaction/discovery each frame, forwards interactions to
+ * Spawns the selected landmark set into the world, keeps their marker state in
+ * sync with the shared interaction target reader, forwards interactions to
  * discovery + event bus, and cleans up everything on dispose.
  */
 export class LandmarkManager implements Disposable {
@@ -49,19 +49,9 @@ export class LandmarkManager implements Disposable {
     return this.landmarks.length;
   }
 
-  update(
-    deltaTime: number,
-    interactHeld: boolean,
-    interactAllowed: boolean,
-    playerX: number,
-    playerZ: number,
-  ): void {
-    this.options.interaction.update(
-      interactHeld,
-      interactAllowed,
-      playerX,
-      playerZ,
-    );
+  /** Interaction state is driven ONCE per frame by the composition root; the
+   *  manager only reads the current target to sync its marker visuals. */
+  update(deltaTime: number): void {
     const currentTargetId = this.options.interaction.currentTarget?.id ?? null;
 
     for (const landmark of this.landmarks) {

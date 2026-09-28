@@ -157,6 +157,29 @@ export interface DiscoveryConfig {
   persist: boolean;
 }
 
+export interface NpcPaletteConfig {
+  skin: string;
+  shirt: string;
+  pants: string;
+}
+
+export interface NpcConfig {
+  defaultInteractionRadius: number;
+  groundOffset: number;
+  /** Square distance cutoff: NPCs beyond this (squared) are hidden. */
+  visibilityDistance: number;
+  palette: NpcPaletteConfig;
+}
+
+export interface DialogueConfig {
+  /** Characters per second for the text reveal. */
+  textRevealSpeed: number;
+  /** Allow advancing/skipping the reveal with E / Space / Enter / tap. */
+  allowSkip: boolean;
+  /** Allow Escape to close an active dialogue. */
+  closeOnEscape: boolean;
+}
+
 export interface PathConfig {
   enabled: boolean;
   heightOffset: number;
@@ -210,6 +233,7 @@ export interface WorldConfig {
   rocks: RockConfig;
   paths: PathConfig;
   landmarks: LandmarksConfig;
+  npcs: NpcConfig;
   atmosphere: AtmosphereConfig;
   grid: WorldGridConfig;
   quality: QualityConfig;
@@ -221,6 +245,7 @@ export interface DebugConfig {
   showGrid: boolean;
   showBounds: boolean;
   showDebugLandmarks: boolean;
+  showDebugNpcs: boolean;
 }
 
 export interface GameConfig {
@@ -234,6 +259,7 @@ export interface GameConfig {
   player: PlayerConfig;
   debug: DebugConfig;
   discovery: DiscoveryConfig;
+  dialogue: DialogueConfig;
 }
 
 const QUALITY_LEVELS: Record<QualityLevel, QualitySettings> = {
@@ -458,6 +484,17 @@ export const gameConfig: GameConfig = {
       },
     },
 
+    npcs: {
+      defaultInteractionRadius: 3,
+      groundOffset: 0.02,
+      visibilityDistance: 60,
+      palette: {
+        skin: "#e0b58c",
+        shirt: "#5f8aa0",
+        pants: "#4d5a63",
+      },
+    },
+
     atmosphere: {
       skyEnabled: true,
       sky: {
@@ -518,9 +555,16 @@ export const gameConfig: GameConfig = {
     showGrid: true,
     showBounds: false,
     showDebugLandmarks: true,
+    showDebugNpcs: true,
   },
 
   discovery: {
     persist: true,
+  },
+
+  dialogue: {
+    textRevealSpeed: 60,
+    allowSkip: true,
+    closeOnEscape: true,
   },
 };

@@ -4,13 +4,9 @@
  * Tapaktuan facts are encoded here — this is a generic data contract.
  */
 
-export type DataStatus =
-  | "draft"
-  | "review"
-  | "verified"
-  | "approved"
-  | "locked"
-  | "deprecated";
+import type { DataStatus } from "../core/types";
+
+export type { DataStatus } from "../core/types";
 
 export type LandmarkType =
   | "landmark"

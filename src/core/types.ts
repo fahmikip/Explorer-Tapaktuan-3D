@@ -6,6 +6,15 @@ export interface Disposable {
   dispose(): void;
 }
 
+/** Data governance status shared by all source-of-truth datasets. */
+export type DataStatus =
+  | "draft"
+  | "review"
+  | "verified"
+  | "approved"
+  | "locked"
+  | "deprecated";
+
 export type LifecyclePhase =
   | "created"
   | "initialized"
@@ -48,4 +57,22 @@ export interface GameEventMap {
 
   /** Landmark entered the player's discovered set for the first time. */
   "landmark:discovered": { landmarkId: string };
+
+  /** Player interacted with an NPC. */
+  "npc:interacted": { npcId: string };
+
+  /** An NPC dialogue began. */
+  "dialogue:started": { dialogueId: string; npcId?: string };
+
+  /** The active node changed inside an active dialogue. */
+  "dialogue:nodeChanged": { nodeId: string };
+
+  /** A choice was made inside an active dialogue. */
+  "dialogue:choiceSelected": { choiceId: string };
+
+  /** The dialogue ran to its end (completed state). */
+  "dialogue:completed": { dialogueId: string };
+
+  /** The dialogue was closed (completed or escaped). */
+  "dialogue:closed": { dialogueId: string };
 }

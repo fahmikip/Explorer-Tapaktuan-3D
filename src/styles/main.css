@@ -235,3 +235,133 @@ body {
     height: 48px;
   }
 }
+
+/* Dialogue UI (bottom panel / bottom sheet) */
+#dialogue-ui {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: min(720px, calc(100vw - 24px));
+  border-radius: 14px;
+  background: rgba(14, 22, 30, 0.94);
+  color: #eef4f5;
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+#dialogue-ui[hidden] {
+  display: none;
+}
+
+.dialogue-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 0 16px;
+}
+
+.dialogue-speaker {
+  flex: 1;
+  color: #a9d3c4;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dialogue-close {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0 -8px 0 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #c9d6da;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialogue-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.dialogue-body {
+  padding: 4px 16px 16px;
+}
+
+.dialogue-text {
+  margin: 6px 0 0;
+  min-height: 44px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #f2f6f5;
+  white-space: pre-wrap;
+}
+
+.dialogue-choices {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.dialogue-choice {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef4f5;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dialogue-choice:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.dialogue-continue {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(127, 174, 109, 0.28);
+  color: #e7f2e1;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.dialogue-continue:hover {
+  background: rgba(127, 174, 109, 0.45);
+}
+
+.dialogue-continue[hidden] {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  #dialogue-ui {
+    width: calc(100vw - 12px);
+    bottom: 8px;
+  }
+
+  .dialogue-close {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dialogue-text {
+    font-size: 15px;
+  }
+}

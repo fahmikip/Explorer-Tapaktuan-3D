@@ -27,6 +27,8 @@ export interface DialogueNode {
 export interface DialogueDefinition {
   /** Stable, machine-readable ID. */
   id: string;
+  status: DataStatus;
+  isTestData?: boolean;
   /** Optional navigation/backlog title. */
   title?: string;
   nodes: DialogueNode[];

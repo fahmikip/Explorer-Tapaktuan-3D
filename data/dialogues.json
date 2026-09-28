@@ -10,13 +10,13 @@
       "nodes": [
         {
           "id": "d1_n1",
-          "speakerId": "TEST_GUIDE_01",
+          "speakerId": "TEST_NPC_01",
           "text": "Selamat datang di uji data! Ini adalah jalur percakapan linear untuk menguji alur dialog.",
           "next": "d1_n2"
         },
         {
           "id": "d1_n2",
-          "speakerId": "TEST_GUIDE_01",
+          "speakerId": "TEST_NPC_01",
           "text": "Tekan tombol lanjut untuk membaca teks berikutnya, atau bilang 'tutup' untuk keluar."
         }
       ]
@@ -29,7 +29,7 @@
       "nodes": [
         {
           "id": "g1_n1",
-          "speakerId": "TEST_NPC_01",
+          "speakerId": "TEST_GUIDE_01",
           "text": "Halo! Ingin melanjutkan ke tujuan berikutnya?",
           "choices": [
             { "id": "c1", "text": "Ya, ke tujuan berikutnya", "next": "g1_n2" },
@@ -38,12 +38,12 @@
         },
         {
           "id": "g1_n2",
-          "speakerId": "TEST_NPC_01",
+          "speakerId": "TEST_GUIDE_01",
           "text": "Baik! Arahkan pandanganmu ke tenggara dan ikuti tanda penanda di pantai."
         },
         {
           "id": "g1_n3",
-          "speakerId": "TEST_NPC_01",
+          "speakerId": "TEST_GUIDE_01",
           "text": "Tentu, tidak apa-apa. Kembali kapan saja bila kamu siap melanjutkan petualangan."
         }
       ]

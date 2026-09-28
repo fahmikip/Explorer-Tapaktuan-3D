@@ -34,7 +34,14 @@ export class DialogueDataLoader {
     return this.loadFromJson(dialoguesJson);
   }
 
-  loadFromJson(input: unknown): DialogueLoadResult {
+  loadForSpeakers(knownSpeakerIds: ReadonlySet<string>): DialogueLoadResult {
+    return this.loadFromJson(dialoguesJson, knownSpeakerIds);
+  }
+
+  loadFromJson(
+    input: unknown,
+    knownSpeakerIds?: ReadonlySet<string>,
+  ): DialogueLoadResult {
     if (!isRecord(input)) {
       return {
         version: 0,
@@ -108,6 +115,18 @@ export class DialogueDataLoader {
       const dialogueIssues: DialogueValidationIssue[] = [];
       const nodes = validateNodes(item.nodes, dialogueLabel, dialogueIssues);
 
+      if (knownSpeakerIds) {
+        for (const node of nodes) {
+          if (!knownSpeakerIds.has(node.speakerId)) {
+            dialogueIssues.push({
+              dialogueId: dialogueLabel,
+              nodeId: node.id,
+              message: `Node '${node.id}' references unknown NPC speaker '${node.speakerId}'.`,
+            });
+          }
+        }
+      }
+
       const entryId = nodes.length > 0 ? nodes[0].id : undefined;
       if (entryId) {
         const orphanIds = collectOrphans(nodes, entryId);
@@ -128,6 +147,8 @@ export class DialogueDataLoader {
       seenDialogueIds.add(String(item.id));
       definitions.push({
         id: String(item.id),
+        status: item.status as DataStatus,
+        isTestData: item.isTestData === true,
         title: typeof item.title === "string" ? item.title : undefined,
         nodes,
       });

@@ -255,23 +255,24 @@ export class Game implements Disposable {
     }
     this.npcRegistry = new NPCRegistry(npcLoadResult);
 
+    const allowTestNpcs =
+      this.config.debug.enabled &&
+      this.config.debug.showDebugNpcs &&
+      import.meta.env.DEV;
     const dialogueDataLoader = new DialogueDataLoader();
-    const dialogueLoadResult = dialogueDataLoader.load();
+    const dialogueLoadResult = dialogueDataLoader.loadForSpeakers(
+      new Set(this.npcRegistry.getAll().map((npc) => npc.id)),
+    );
     if (dialogueLoadResult.issues.length > 0) {
       console.warn(
         "[Explore Tapaktuan 3D] Dialogue data issues:",
         dialogueLoadResult.issues,
       );
     }
-    this.dialogueRegistry = new DialogueRegistry(dialogueLoadResult);
+    this.dialogueRegistry = new DialogueRegistry(dialogueLoadResult, allowTestNpcs);
     this.dialogueEngine = new DialogueEngine(this.dialogueRegistry, this.eventBus);
 
     const npcConfig = this.config.world.npcs;
-    const allowTestNpcs =
-      this.config.debug.enabled &&
-      this.config.debug.showDebugNpcs &&
-      import.meta.env.DEV;
-
     this.npcFactory = new NPCFactory(npcConfig.palette);
     this.npcManager = new NPCManager({
       registry: this.npcRegistry,

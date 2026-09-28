@@ -12,10 +12,15 @@ export class DialogueRegistry {
   readonly issues: DialogueLoadResult["issues"];
   readonly version: number;
 
-  constructor(result: DialogueLoadResult) {
+  constructor(result: DialogueLoadResult, allowTestData = false) {
     this.issues = result.issues;
     this.version = result.version;
     for (const definition of result.definitions) {
+      const productionReady =
+        definition.status === "approved" || definition.status === "locked";
+      if (!productionReady && !(allowTestData && definition.isTestData === true)) {
+        continue;
+      }
       this.byId.set(definition.id, definition);
       this.definitions.push(definition);
     }

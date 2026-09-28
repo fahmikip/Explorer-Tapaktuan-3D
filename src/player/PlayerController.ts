@@ -42,7 +42,9 @@ export class PlayerController implements Disposable {
     } else {
       this.forward.set(0, 0, 1);
     }
-    this.right.crossVectors(this.up, this.forward);
+    // Camera forward points from the camera into the scene. For Three.js world
+    // up, forward × up gives screen-right; up × forward reverses the strafe.
+    this.right.crossVectors(this.forward, this.up);
 
     this.desired.set(0, 0, 0);
     this.desired.addScaledVector(this.forward, input.moveZ);
@@ -93,7 +95,12 @@ export class PlayerController implements Disposable {
     position.y += this.player.verticalVelocity * deltaTime;
 
     const groundY = this.options.groundHeightAt(position.x, position.z);
-    if (position.y <= groundY) {
+    if (this.player.grounded) {
+      // Follow terrain while walking so the player does not float over slopes
+      // or coast transitions. Jumping sets grounded=false and uses gravity.
+      position.y = groundY;
+      this.player.verticalVelocity = 0;
+    } else if (position.y <= groundY) {
       position.y = groundY;
       this.player.verticalVelocity = 0;
       this.player.grounded = true;

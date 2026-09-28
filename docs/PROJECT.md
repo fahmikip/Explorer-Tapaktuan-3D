@@ -146,6 +146,7 @@ CONTINUE EXPLORING
 - Phase 3 — World Prototype (procedural coastal environment foundation): **Complete**
 - Phase 4 — Landmark & POI System: **Complete**
 - Phase 5 — NPC & Dialogue: **Complete**
+- Phase 6 — Quest: **Complete**
 
 See [ROADMAP.md](./ROADMAP.md) and [CHANGELOG.md](./CHANGELOG.md).
 
@@ -226,4 +227,14 @@ _This document is part of the project source of truth._
   dialogue state, keyboard/button UI, and dev-only test data. Quests,
   achievements, production NPCs, and verified tourism content remain outside
   this phase.
-- **Phase 5 record**: Complete � see [CHANGELOG.md](./CHANGELOG.md).
+- **Phase 5 record**: Complete — see [CHANGELOG.md](./CHANGELOG.md).
+
+### Phase 6
+
+- **STATEMENT of position**: the quest system is content-neutral. The only
+  quest is explicitly marked draft test data and does not present tourism
+  information as verified fact.
+- **Phase 6 scope**: validated quest definitions, discovery/NPC interaction
+  objectives, event-driven progression, reward points, optional local
+  persistence, and an active quest tracker. Achievements remain Phase 9.
+- **Phase 6 record**: Complete — see [CHANGELOG.md](./CHANGELOG.md).

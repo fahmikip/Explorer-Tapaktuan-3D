@@ -1,5 +1,23 @@
 # Changelog
 
+## Phase 6
+
+Quest system implemented with no invented production tourism content.
+
+- **Added**: quest types, non-throwing JSON loader/validator and registry with
+  approved/locked production filtering and a dev-only test-data gate.
+- **Added**: event-driven objectives for landmark discovery, NPC interaction
+  and dialogue completion; completion awards configured quest points once.
+- **Added**: safe memory/localStorage progress storage and objective progress
+  restoration, plus a responsive quest tracker showing completion and rewards.
+- **Integrated**: quest tracking subscribes to existing typed gameplay events;
+  debug telemetry reports quest completion and points.
+- **Test content**: one draft test quest requires a test landmark discovery and
+  talking to the test guide, then grants 10 points.
+- **Validated**: `npm run build` PASS; browser runtime validation unavailable.
+- **Known**: production JavaScript chunk remains over Vite's 500 kB warning
+  threshold.
+
 ## Phase 5
 
 NPC & Dialogue systems implemented. Current content is draft test data only;

@@ -157,6 +157,11 @@ export interface DiscoveryConfig {
   persist: boolean;
 }
 
+export interface QuestConfig {
+  /** Persist quest progress and reward points to localStorage when true. */
+  persist: boolean;
+}
+
 export interface NpcPaletteConfig {
   skin: string;
   shirt: string;
@@ -246,6 +251,7 @@ export interface DebugConfig {
   showBounds: boolean;
   showDebugLandmarks: boolean;
   showDebugNpcs: boolean;
+  showDebugQuests: boolean;
 }
 
 export interface GameConfig {
@@ -259,6 +265,7 @@ export interface GameConfig {
   player: PlayerConfig;
   debug: DebugConfig;
   discovery: DiscoveryConfig;
+  quests: QuestConfig;
   dialogue: DialogueConfig;
 }
 
@@ -556,9 +563,14 @@ export const gameConfig: GameConfig = {
     showBounds: false,
     showDebugLandmarks: true,
     showDebugNpcs: true,
+    showDebugQuests: true,
   },
 
   discovery: {
+    persist: true,
+  },
+
+  quests: {
     persist: true,
   },
 

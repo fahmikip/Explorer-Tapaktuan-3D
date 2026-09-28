@@ -57,6 +57,8 @@ Tapaktuan reconstruction).
 ## Phase 6 — Quest
 
 - Quest manager, objectives, rewards, progression.
+- **Status: Complete** — validated data, event-driven objectives, persistent
+  progress/reward points and quest tracker; see `CHANGELOG.md`.
 
 ## Phase 7 — Tourism Layer
 

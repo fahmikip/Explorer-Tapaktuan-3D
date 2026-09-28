@@ -75,4 +75,10 @@ export interface GameEventMap {
 
   /** The dialogue was closed (completed or escaped). */
   "dialogue:closed": { dialogueId: string };
+
+  /** Quest objective progress changed. */
+  "quest:progress": { completed: number; total: number; points: number };
+
+  /** A quest completed and its configured points reward was granted. */
+  "quest:completed": { questId: string; rewardPoints: number };
 }

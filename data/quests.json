@@ -1,5 +1,29 @@
 {
   "version": 1,
   "status": "draft",
-  "items": []
+  "items": [
+    {
+      "id": "TEST_QUEST_01",
+      "title": "Jelajah dan Berbincang",
+      "description": "Quest uji untuk memeriksa progres eksplorasi dan dialog.",
+      "status": "draft",
+      "isTestData": true,
+      "rewardPoints": 10,
+      "objectives": [
+        {
+          "id": "discover_one",
+          "type": "discover_landmark",
+          "description": "Temukan satu penanda uji",
+          "count": 1
+        },
+        {
+          "id": "talk_to_guide",
+          "type": "talk_to_npc",
+          "description": "Bicaralah dengan pemandu uji",
+          "targetId": "TEST_GUIDE_01",
+          "count": 1
+        }
+      ]
+    }
+  ]
 }

@@ -109,6 +109,10 @@ AI rules:
 - Where structure is data-driven, keep logic generic.
 - New achievements/quests/landmarks should not require core rewrites.
 - Data status changes are reviewed, not silent.
+- Quest objectives use `discover_landmark`, `talk_to_npc`, or
+  `complete_dialogue` event types with stable objective IDs and positive target
+  counts. Quest rewards are non-monetary points; draft/test quests require an
+  explicit development gate.
 
 ---
 

@@ -32,6 +32,10 @@ import { DialogueDataLoader } from "../data/DialogueDataLoader";
 import { DialogueRegistry } from "../dialogue/DialogueRegistry";
 import { DialogueEngine } from "../dialogue/DialogueEngine";
 import { DialogueUI } from "../ui/DialogueUI";
+import { QuestDataLoader } from "../data/QuestDataLoader";
+import { QuestRegistry } from "../quest/QuestRegistry";
+import { QuestManager, LocalStorageQuestStorage, MemoryQuestStorage } from "../quest/QuestManager";
+import { QuestPanel } from "../ui/QuestPanel";
 
 /** Gameplay input while a UI overlay (e.g. info panel) is open. */
 const LOCKED_INPUT: InputState = createIdentityInputState();
@@ -85,6 +89,9 @@ export class Game implements Disposable {
   private hint: InteractionHint | null = null;
   private panel: LandmarkInfoPanel | null = null;
   private dialogueUI: DialogueUI | null = null;
+  private questRegistry: QuestRegistry | null = null;
+  private questManager: QuestManager | null = null;
+  private questPanel: QuestPanel | null = null;
 
   private canvas: HTMLCanvasElement | null = null;
   private animationFrameId: number | null = null;
@@ -272,6 +279,21 @@ export class Game implements Disposable {
     this.dialogueRegistry = new DialogueRegistry(dialogueLoadResult, allowTestNpcs);
     this.dialogueEngine = new DialogueEngine(this.dialogueRegistry, this.eventBus);
 
+    const questDataLoader = new QuestDataLoader();
+    const questLoadResult = questDataLoader.load();
+    if (questLoadResult.issues.length > 0) {
+      console.warn("[Explore Tapaktuan 3D] Quest data issues:", questLoadResult.issues);
+    }
+    this.questRegistry = new QuestRegistry(
+      questLoadResult,
+      this.config.debug.enabled && this.config.debug.showDebugQuests && import.meta.env.DEV,
+    );
+    this.questManager = new QuestManager(
+      this.questRegistry.definitions,
+      this.eventBus,
+      this.config.quests.persist ? new LocalStorageQuestStorage() : new MemoryQuestStorage(),
+    );
+
     const npcConfig = this.config.world.npcs;
     this.npcFactory = new NPCFactory(npcConfig.palette);
     this.npcManager = new NPCManager({
@@ -305,6 +327,13 @@ export class Game implements Disposable {
           this.dialogueEngine?.selectChoice(choiceId),
         onCloseRequest: () => this.closeDialogue(),
       });
+      this.questPanel = new QuestPanel(
+        uiRoot,
+        this.eventBus,
+        () => this.questRegistry?.definitions ?? [],
+        () => this.questManager?.progress ?? [],
+        () => this.questManager?.points ?? 0,
+      );
     }
 
     this.eventBus.on("landmark:interacted", this.handleLandmarkInteracted);
@@ -413,6 +442,8 @@ export class Game implements Disposable {
     this.npcFactory?.disposeShared();
     this.dialogueEngine?.dispose();
     this.dialogueUI?.dispose();
+    this.questPanel?.dispose();
+    this.questManager?.dispose();
     this.discoveryManager?.dispose();
     this.interactionManager?.dispose();
     this.eventBus.off("landmark:interacted", this.handleLandmarkInteracted);
@@ -502,6 +533,8 @@ export class Game implements Disposable {
       this.dialogueEngine && this.dialogueEngine.isActive()
         ? `${this.dialogueEngine.dialogueId ?? ""} (${this.dialogueEngine.getCurrentNode()?.id ?? "?"})`
         : "idle";
+    this.extras["quests"] = `${this.questManager?.progress.filter((quest) => quest.completed).length ?? 0}/${this.questRegistry?.definitions.length ?? 0}`;
+    this.extras["quest points"] = `${this.questManager?.points ?? 0}`;
 
     return this.extras;
   }

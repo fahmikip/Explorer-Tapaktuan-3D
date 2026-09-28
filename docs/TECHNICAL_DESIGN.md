@@ -437,3 +437,7 @@ NPC interaction resolves its configured `dialogueId` in the validated
 speaker display names come from the NPC registry. Draft/test NPCs and dialogue
 definitions are available only in development with the corresponding debug
 flags. Production content requires approved/locked status.
+
+### 2.2.4 Quest System (Phase 6)
+
+QuestDataLoader validates objective types, IDs, counts and reward points from /data/quests.json. QuestRegistry admits approved/locked definitions in production and draft test definitions only behind debug.enabled && debug.showDebugQuests && import.meta.env.DEV. QuestManager listens to landmark discovery, NPC interaction and dialogue completion events, tracks objective counts, awards each quest reward once, and persists through a guarded localStorage adapter. QuestPanel presents progress and points; it contains no quest content of its own.

@@ -365,3 +365,35 @@ body {
     font-size: 15px;
   }
 }
+
+/* Quest tracker */
+#quest-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: min(300px, calc(100vw - 24px));
+  max-height: min(48vh, 360px);
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(14, 22, 30, 0.9);
+  color: #eef4f5;
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(6px);
+}
+
+#quest-panel h2 { margin: 0; font-size: 15px; }
+.quest-summary { margin-top: 4px; color: #a9d3c4; font-size: 12px; }
+.quest-list { display: grid; gap: 10px; margin-top: 10px; }
+.quest-list > p { margin: 0; color: #c4d0d3; font-size: 13px; }
+.quest-item { padding-top: 8px; border-top: 1px solid rgba(255,255,255,.12); }
+.quest-item h3 { margin: 0 0 5px; font-size: 13px; }
+.quest-item ul { margin: 0; padding: 0; list-style: none; color: #c4d0d3; font-size: 12px; line-height: 1.5; }
+.quest-item li { margin-top: 3px; }
+.quest-reward { margin: 5px 0 0; color: #ffd68a; font-size: 11px; }
+
+@media (max-width: 600px) {
+  #quest-panel { top: 8px; right: 8px; width: min(250px, calc(100vw - 16px)); max-height: 35vh; padding: 9px; }
+}
